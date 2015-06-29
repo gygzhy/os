@@ -13,6 +13,9 @@ html
     link(rel="import" href="/paper-item/paper-item.html")  
     link(rel="import" href="/paper-toggle-button/paper-toggle-button.html")
     link(rel="import" href="/paper-material/paper-material.html")
+    link(rel="import" href="/paper-radio-group/paper-radio-group.html")
+    link(rel="import" href="/paper-radio-button/paper-radio-button.html")
+
     style.
       body {
         margin: 0;
@@ -25,10 +28,10 @@ html
           paper-button(raised style="background: red") Toggle
         paper-material
           paper-menu
-            paper-item
-              | test1
-            paper-item
-              | test2
+            paper-item CPU
+            paper-item Memory
+            paper-item Hard Disk
       paper-header-panel(main) 
         paper-toolbar
-          h3 main
+        block content
+          
