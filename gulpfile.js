@@ -38,6 +38,10 @@ _gulp2['default'].task('nodemon', function () {
   });
 });
 
+_gulp2['default'].task('test', function () {
+  return _gulp2['default'].src('./test/memory.js').pipe($.jasmine());
+});
+
 _gulp2['default'].task('browswerSync', ['nodemon'], function () {
   return (0, _browserSync2['default'])({
     notify: false,

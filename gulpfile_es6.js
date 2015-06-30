@@ -25,6 +25,11 @@ gulp.task('nodemon', () => {
   });
 });
 
+gulp.task('test', function() {
+    return gulp.src('./test/memory.js')
+        .pipe($.jasmine());
+});
+
 gulp.task('browswerSync', ['nodemon'], () => {
   return browserSync({
     notify: false,

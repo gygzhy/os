@@ -42,6 +42,8 @@ public class Memory {
 	static private Memory currentAllocatePointer;
 	// 内存头指针，指向内存链的第一块内存
 	static private Memory head;
+	// 空闲块的总大小
+	static private int idleSize;
 	
 	static {
 		head = new Memory(totalSize, 0, totalSize - 1, true);
@@ -49,14 +51,16 @@ public class Memory {
 		head.prev = head;
 		head.nextIdle = head;
 		head.prevIdle = head;
+		
+		idleSize = totalSize;
 	}
 	
 	public int getSize() {
 		return size;
 	}
 
-	public UUID getId() {
-		return id;
+	public String getId() {
+		return id.toString();
 	}
 
 	// 隐藏构造函数
@@ -71,6 +75,42 @@ public class Memory {
 	// 设置内存的工作模式
 	static private mode allocateMode = mode.FF;
 	
+	public int getMemCeil() {
+		return memCeil;
+	}
+
+	public int getMemFloor() {
+		return memFloor;
+	}
+
+	public Memory getNext() {
+		return next;
+	}
+
+	public Memory getPrev() {
+		return prev;
+	}
+
+	public Memory getNextIdle() {
+		return nextIdle;
+	}
+
+	public Memory getPrevIdle() {
+		return prevIdle;
+	}
+
+	public boolean isIdle() {
+		return isIdle;
+	}
+
+	public static Memory getHead() {
+		return head;
+	}
+
+	public static int getIdleSize() {
+		return idleSize;
+	}
+
 	public static mode getAllocateMode() {
 		return allocateMode;
 	}
@@ -110,6 +150,10 @@ public class Memory {
 		case QF:
 			mem = null;
 			break;
+		}
+		
+		if (mem != null) {
+			idleSize -= mem.size;
 		}
 		
 		return mem;
@@ -183,6 +227,7 @@ public class Memory {
 				mem.memFloor + mem.size - size, true);
 		
 		first.isIdle = false;
+		first.size = size;
 		
 		second.insertAfter(first);
 		
@@ -239,5 +284,6 @@ public class Memory {
 		
 		isIdle = true;
 		
+		idleSize += size;
 	}
 }
