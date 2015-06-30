@@ -28,9 +28,13 @@ _gulp2['default'].task('fonts', function () {
 
 _gulp2['default'].task('nodemon', function () {
   return $.nodemon({
+    verbose: true,
     script: 'bin/www',
-    env: { 'NODE_ENV': 'development' },
+    ext: 'js',
+    watch: ['routes'],
     tasks: ['build']
+  }).on('restart', function () {
+    console.log('restarted');
   });
 });
 
@@ -53,4 +57,4 @@ _gulp2['default'].task('build', function () {
   return _gulp2['default'].src('routes/src/*.js').pipe($.babel()).pipe(_gulp2['default'].dest('routes/'));
 });
 
-_gulp2['default'].task('default', ['nodemon']);
+_gulp2['default'].task('default', ['browswerSync', 'nodemon']);

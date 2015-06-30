@@ -15,10 +15,14 @@ gulp.task('fonts', () => {
 
 gulp.task('nodemon', () => {
 	return $.nodemon({
+    verbose: true,
 	  script: 'bin/www',
-    env: {'NODE_ENV': 'development'},
+    ext: 'js',
+    watch: ['routes'],
     tasks: ['build']
-	});
+	}).on('restart', function() {
+    console.log('restarted');
+  });
 });
 
 gulp.task('browswerSync', ['nodemon'], () => {
@@ -42,4 +46,4 @@ gulp.task('build', () => {
     .pipe(gulp.dest('routes/'));
 });
 
-gulp.task('default', ['nodemon']);
+gulp.task('default', ['browswerSync', 'nodemon']);

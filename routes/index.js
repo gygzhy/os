@@ -25,7 +25,7 @@ var test = new Test();
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
-  res.render('index', { title: 'go' });
+  res.render('index', { title: 'go fcsaefdf' });
 });
 
 module.exports = router;
