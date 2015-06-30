@@ -6,7 +6,6 @@ var Memory = java.import('com.csu.os.resource.Memory');
 
 describe('Allocated memory', function() {
   var mem1 = Memory.AllocateSync(300);
-  console.log('allocate done');
   var mem2 = Memory.AllocateSync(20);
   var mem3 = Memory.AllocateSync(3000);
 
@@ -30,15 +29,13 @@ describe('Allocated memory', function() {
     expect(mem1.getIdSync()).not.toEqual(mem2.getIdSync());
   });
 
-  it('should be exceeded and return null', function() {
+  it('should be insufficient and return null', function() {
     expect(mem3).toBeNull();
   });
 
   it('should be only one memory section after freeing all', function() {
     mem1.freeSync();
     mem2.freeSync();
-
-    expect(Memory.getIdleSizeSync()).toBe(2048);
     var i = 0, current = Memory.getHeadSync();
     do {
       i ++;
@@ -47,4 +44,17 @@ describe('Allocated memory', function() {
 
     expect(i).toBe(1);
   });
+
+  it('should be 2048 after freeing all', function() {
+    expect(Memory.getIdleSizeSync()).toBe(2048);
+  });
+
+  Memory.setAllocateModeSync(Memory.mode.NF);
+  console.log('Allocate mode switch to next fit');
+
+  mem1 = Memory.AllocateSync(400);
+  mem2 = Memory.AllocateSync(20);
+  mem3 = memory.AllocateSync(180);
+
+
 });

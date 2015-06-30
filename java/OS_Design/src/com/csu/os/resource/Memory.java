@@ -47,6 +47,8 @@ public class Memory {
 		head.next = head;
 		head.prev = head;
 		
+		currentAllocatePointer = head;
+		
 		idleSize = totalSize;
 	}
 	
@@ -141,6 +143,7 @@ public class Memory {
 		
 		if (mem != null) {
 			idleSize -= mem.size;
+			currentAllocatePointer = mem;
 		}
 		
 		return mem;
@@ -169,7 +172,7 @@ public class Memory {
 	}
 	
 	static private Memory bestFit(int size) {
-		Memory cur = currentAllocatePointer, ret = null;
+		Memory cur = head, ret = null;
 		do {
 			if (cur.isIdle && cur.size >= size) {
 				if(ret == null || ret.size > cur.size) {
@@ -182,7 +185,7 @@ public class Memory {
 	}
 	
 	static private Memory worstFit(int size) {
-		Memory cur = currentAllocatePointer, ret = null;
+		Memory cur = head, ret = null;
 		do {
 			if (cur.isIdle && cur.size >= size) {
 				if(ret == null || ret.size < cur.size) {
@@ -264,8 +267,14 @@ public class Memory {
 	
 	/**
 	 * 回收内存
+	 * @return 回收后当前的内存
 	 */
-	public void free() {
+	public Memory free() {
+		
+		if (isIdle) {
+			return this;
+		}
+		
 		isIdle = true;
 		Memory cur = this;
 		if (cur.prev.isIdle && cur.prev != cur) {
@@ -277,6 +286,18 @@ public class Memory {
 		}
 		
 		idleSize += size;
+		
+		return cur;
+	}
+	
+	/**
+	 * 回收所有内存 
+	 */
+	public static void freeAll() {
+		Memory cur = head;
+		do {
+			cur = cur.free();
+		} while((cur = cur.next) != head);
 	}
 
 	@Override
@@ -302,16 +323,5 @@ public class Memory {
 		} else if (!id.equals(other.id))
 			return false;
 		return true;
-	}
-	
-	public static void main(String[] argvs) {
-		Memory mem = Memory.Allocate(300);
-		Memory mem2 = Memory.Allocate(20);
-		Memory mem3 = Memory.Allocate(3000);
-		
-		System.out.println(Memory.getIdleSize());
-		mem.free();
-		mem2.free();
-		System.out.println(Memory.getIdleSize());
 	}
 }
