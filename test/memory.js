@@ -6,8 +6,21 @@ var Memory = java.import('com.csu.os.resource.Memory');
 
 describe('Allocated memory', function() {
   var mem1 = Memory.AllocateSync(300);
+  console.log('allocate done');
   var mem2 = Memory.AllocateSync(20);
   var mem3 = Memory.AllocateSync(3000);
+
+  console.log('allocate done');
+
+  it('should be three memory section', function() {
+    var i = 0, current = Memory.getHeadSync();
+    do {
+      i ++;
+      current = current.getNextSync();
+    } while(!current.equalsSync(Memory.getHeadSync()));
+
+    expect(i).toBe(3);
+  });
 
   it('should have 300 in size', function() {
     expect(mem1.getSizeSync()).toBe(300);
@@ -21,11 +34,17 @@ describe('Allocated memory', function() {
     expect(mem3).toBeNull();
   });
 
-  it('should be 300 more after freeing', function() {
-    var idleSize = Memory.getIdleSizeSync();
+  it('should be only one memory section after freeing all', function() {
     mem1.freeSync();
-    var newIdleSize = Memory.getIdleSizeSync();
+    mem2.freeSync();
 
-    expect(newIdleSize - idleSize).toEqual(300);
+    expect(Memory.getIdleSizeSync()).toBe(2048);
+    var i = 0, current = Memory.getHeadSync();
+    do {
+      i ++;
+      current = current.getNextSync();
+    } while(!current.equalsSync(Memory.getHeadSync()));
+
+    expect(i).toBe(1);
   });
 });
