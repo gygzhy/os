@@ -9,6 +9,18 @@ describe('Allocated memory', function() {
   var mem2 = Memory.AllocateSync(20);
   var mem3 = Memory.AllocateSync(3000);
 
+  console.log('allocate done');
+
+  it('should be three memory section', function() {
+    var i = 0, current = Memory.getHeadSync();
+    do {
+      i ++;
+      current = current.getNextSync();
+    } while(!current.equalsSync(Memory.getHeadSync()));
+
+    expect(i).toBe(3);
+  });
+
   it('should have 300 in size', function() {
     expect(mem1.getSizeSync()).toBe(300);
   });
@@ -17,15 +29,32 @@ describe('Allocated memory', function() {
     expect(mem1.getIdSync()).not.toEqual(mem2.getIdSync());
   });
 
-  it('should be exceeded and return null', function() {
+  it('should be insufficient and return null', function() {
     expect(mem3).toBeNull();
   });
 
-  it('should be 300 more after freeing', function() {
-    var idleSize = Memory.getIdleSizeSync();
+  it('should be only one memory section after freeing all', function() {
     mem1.freeSync();
-    var newIdleSize = Memory.getIdleSizeSync();
+    mem2.freeSync();
+    var i = 0, current = Memory.getHeadSync();
+    do {
+      i ++;
+      current = current.getNextSync();
+    } while(!current.equalsSync(Memory.getHeadSync()));
 
-    expect(newIdleSize - idleSize).toEqual(300);
+    expect(i).toBe(1);
   });
+
+  it('should be 2048 after freeing all', function() {
+    expect(Memory.getIdleSizeSync()).toBe(2048);
+  });
+
+  Memory.setAllocateModeSync(Memory.mode.NF);
+  console.log('Allocate mode switch to next fit');
+
+  mem1 = Memory.AllocateSync(400);
+  mem2 = Memory.AllocateSync(20);
+  mem3 = memory.AllocateSync(180);
+
+
 });

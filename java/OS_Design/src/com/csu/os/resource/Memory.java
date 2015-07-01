@@ -32,9 +32,6 @@ public class Memory {
 	// 内存链表的下一块内存
 	private Memory next;
 	private Memory prev;
-	// 内存链表的下一块空闲内存
-	private Memory nextIdle;
-	private Memory prevIdle;
 	//是否为空闲块
 	private boolean isIdle;
 	
@@ -49,8 +46,8 @@ public class Memory {
 		head = new Memory(totalSize, 0, totalSize - 1, true);
 		head.next = head;
 		head.prev = head;
-		head.nextIdle = head;
-		head.prevIdle = head;
+		
+		currentAllocatePointer = head;
 		
 		idleSize = totalSize;
 	}
@@ -89,14 +86,6 @@ public class Memory {
 
 	public Memory getPrev() {
 		return prev;
-	}
-
-	public Memory getNextIdle() {
-		return nextIdle;
-	}
-
-	public Memory getPrevIdle() {
-		return prevIdle;
 	}
 
 	public boolean isIdle() {
@@ -154,6 +143,7 @@ public class Memory {
 		
 		if (mem != null) {
 			idleSize -= mem.size;
+			currentAllocatePointer = mem;
 		}
 		
 		return mem;
@@ -166,7 +156,7 @@ public class Memory {
 				ret = split(cur, size);
 				break;
 			}
-		} while ((cur = cur.nextIdle) != head);
+		} while ((cur = cur.next) != head);
 		return ret;
 	}
 	
@@ -177,32 +167,32 @@ public class Memory {
 				ret = split(cur, size);
 				break;
 			}
-		} while ((cur = cur.nextIdle) != head);
+		} while ((cur = cur.next) != head);
 		return ret;
 	}
 	
 	static private Memory bestFit(int size) {
-		Memory cur = currentAllocatePointer, ret = null;
+		Memory cur = head, ret = null;
 		do {
 			if (cur.isIdle && cur.size >= size) {
 				if(ret == null || ret.size > cur.size) {
 					ret = cur;
 				}
 			}
-		} while ((cur = cur.nextIdle) != head);
+		} while ((cur = cur.next) != head);
 		ret = split(ret, size);
 		return ret;
 	}
 	
 	static private Memory worstFit(int size) {
-		Memory cur = currentAllocatePointer, ret = null;
+		Memory cur = head, ret = null;
 		do {
 			if (cur.isIdle && cur.size >= size) {
 				if(ret == null || ret.size < cur.size) {
 					ret = cur;
 				}
 			}
-		} while ((cur = cur.nextIdle) != head);
+		} while ((cur = cur.next) != head);
 		ret = split(ret, size);
 		return ret;
 	}
@@ -217,73 +207,121 @@ public class Memory {
 		}
 		
 		if (mem.size == size) {
-			mem.prev.nextIdle = mem.prevIdle.nextIdle = mem.nextIdle;
 			mem.isIdle = false;
 			return mem;
 		}
 		
-		Memory first = mem;
-		Memory second = new Memory(mem.size - size, mem.memFloor + 1,
-				mem.memFloor + mem.size - size, true);
+		Memory first = new Memory(size, mem.memCeil, mem.memCeil + size - 1, false);
+		Memory second = new Memory(mem.size - size, first.memFloor + 1,
+				mem.memFloor, true);
 		
-		first.isIdle = false;
-		first.size = size;
-		
+		first.insertAfter(mem.prev);
 		second.insertAfter(first);
+		
+		// preserve the head
+		if (mem == head) {
+			head = first;
+		}
+		
+		mem.drop();
 		
 		return first;
 	}
 	
-	static private Memory merge(Memory first, Memory second) {
-		if (!first.isIdle || !second.isIdle || first.next != second) {
-			return null;
+	private Memory merge(Memory another) {
+		// 避免两个非空闲分区、循环链别的头和尾部节点在中间有其他节点的情况下和两个不相邻的节点合并
+		if (!isIdle || !another.isIdle || (next != another && prev != another) ||
+				(this == head && another == this.prev && another != this.next) ||
+				(another == head && another.prev == this && another.next != this)) {
+			return this;
 		}
 		
-		first.next = second.next;
-		first.nextIdle = second.nextIdle;
+		Memory newMem = new Memory(size + another.size, memCeil, another.memFloor, true);
+		newMem.insertAfter(prev);
 		
-		second.next.prev = first;
-		second.next.prevIdle = first;
-		second.nextIdle.prevIdle = first;
+		if (this == head || another == head) {
+			head = newMem;
+		}
 		
-		first.size += second.size;
-		first.memFloor = second.memFloor;
+		drop();
+		another.drop();
 		
-		return first;
+		return newMem;
 	}
 	
 	private void insertAfter(Memory to) {
 		next = to.next;
-		nextIdle = to.nextIdle;
 		prev = to;
 		
-		if (to.isIdle) {
-			prevIdle = to;
-		} else {
-			prevIdle = to.prevIdle;
-		}
-		
 		to.next = this;
-		if (isIdle) {
-			to.nextIdle = this;
-		}
+		next.prev = this;
+	}
+	
+	/**
+	 * 从链表中除去
+	 */
+	private void drop() {
+		prev.next = next;
+		next.prev = prev;
 	}
 	
 	/**
 	 * 回收内存
+	 * @return 回收后当前的内存
 	 */
-	public void free() {
-		Memory cur = this;
-		if (prev.isIdle) {
-			cur = merge(prev, cur);
-		}
+	public Memory free() {
 		
-		if (next.isIdle) {
-			cur = merge(cur, next);
+		if (isIdle) {
+			return this;
 		}
 		
 		isIdle = true;
+		Memory cur = this;
+		if (cur.prev.isIdle && cur.prev != cur) {
+			cur = cur.merge(prev);
+		}
+		
+		if (cur.next.isIdle && cur.next != cur) {
+			cur = cur.merge(next);
+		}
 		
 		idleSize += size;
+		
+		return cur;
+	}
+	
+	/**
+	 * 回收所有内存 
+	 */
+	public static void freeAll() {
+		Memory cur = head;
+		do {
+			cur = cur.free();
+		} while((cur = cur.next) != head);
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Memory other = (Memory) obj;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		return true;
 	}
 }
