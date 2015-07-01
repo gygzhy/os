@@ -61,11 +61,11 @@ public class Memory {
 	}
 
 	// 隐藏构造函数
-	private Memory(int size, int head, int tail, boolean idle) {
+	private Memory(int size, int floor, int ceil, boolean idle) {
 		this.size = size;
 		this.id = UUID.randomUUID();
-		this.memCeil = head;
-		this.memFloor = tail;
+		this.memCeil = ceil;
+		this.memFloor = floor;
 		this.isIdle = idle;
 	}
 	
@@ -211,9 +211,9 @@ public class Memory {
 			return mem;
 		}
 		
-		Memory first = new Memory(size, mem.memCeil, mem.memCeil + size - 1, false);
-		Memory second = new Memory(mem.size - size, first.memFloor + 1,
-				mem.memFloor, true);
+		Memory first = new Memory(size, mem.memFloor, mem.memFloor + size - 1, false);
+		Memory second = new Memory(mem.size - size, first.memCeil + 1,
+				mem.memCeil, true);
 		
 		first.insertAfter(mem.prev);
 		second.insertAfter(first);
@@ -236,7 +236,7 @@ public class Memory {
 			return this;
 		}
 		
-		Memory newMem = new Memory(size + another.size, memCeil, another.memFloor, true);
+		Memory newMem = new Memory(size + another.size, Math.min(memFloor, another.memFloor), Math.max(memCeil, another.memCeil), true);
 		newMem.insertAfter(prev);
 		
 		if (this == head || another == head) {
@@ -298,6 +298,35 @@ public class Memory {
 		do {
 			cur = cur.free();
 		} while((cur = cur.next) != head);
+	}
+	
+	static public int getMemoryIdleSectionNum() {
+		return getMemorySectionNum(1);
+	}
+	
+	static public int getMemoryBusySectionNum() {
+		return getMemorySectionNum(2);
+	}
+	
+	static public int getMemoryAllSectionNum() {
+		return getMemorySectionNum(0);
+	}
+	
+	/**
+	 * 获取内存的块数
+	 * 0 获取所有块，1只获取空闲块，2只获取占用块
+	 * @return
+	 */
+	static private int getMemorySectionNum(int mode) {
+		int i = 0;
+		Memory cur = Memory.getHead();
+		do {
+			if (mode == 0 || (mode == 1 && cur.isIdle) || (mode == 2 && !cur.isIdle)) {
+				++i;
+			}
+		} while ((cur = cur.getNext()) != Memory.getHead());
+		
+		return i;
 	}
 
 	@Override

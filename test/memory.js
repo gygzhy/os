@@ -12,13 +12,7 @@ describe('Allocated memory', function() {
   console.log('allocate done');
 
   it('should be three memory section', function() {
-    var i = 0, current = Memory.getHeadSync();
-    do {
-      i ++;
-      current = current.getNextSync();
-    } while(!current.equalsSync(Memory.getHeadSync()));
-
-    expect(i).toBe(3);
+    expect(Memory.getMemoryAllSectionNumSync()).toBe(3);
   });
 
   it('should have 300 in size', function() {
@@ -36,25 +30,12 @@ describe('Allocated memory', function() {
   it('should be only one memory section after freeing all', function() {
     mem1.freeSync();
     mem2.freeSync();
-    var i = 0, current = Memory.getHeadSync();
-    do {
-      i ++;
-      current = current.getNextSync();
-    } while(!current.equalsSync(Memory.getHeadSync()));
 
-    expect(i).toBe(1);
+    expect(Memory.getMemoryAllSectionNumSync()).toBe(1);
   });
 
   it('should be 2048 after freeing all', function() {
     expect(Memory.getIdleSizeSync()).toBe(2048);
   });
-
-  Memory.setAllocateModeSync(Memory.mode.NF);
-  console.log('Allocate mode switch to next fit');
-
-  mem1 = Memory.AllocateSync(400);
-  mem2 = Memory.AllocateSync(20);
-  mem3 = memory.AllocateSync(180);
-
 
 });
