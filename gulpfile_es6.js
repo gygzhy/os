@@ -15,7 +15,6 @@ gulp.task('fonts', () => {
 
 gulp.task('nodemon', () => {
 	return $.nodemon({
-    verbose: true,
 	  script: 'bin/www',
     ext: 'js',
     watch: ['routes'],
@@ -46,9 +45,13 @@ gulp.task('browswerSync', ['nodemon'], () => {
 });
 
 gulp.task('build', () => {
-  return gulp.src('routes/src/*.js')
+  gulp.src(['routes/src/*.js'])
     .pipe($.babel())
     .pipe(gulp.dest('routes/'));
+
+  return gulp.src(['./src/app.js'])
+      .pipe($.babel())
+      .pipe(gulp.dest('./'));
 });
 
 gulp.task('default', ['browswerSync', 'nodemon']);

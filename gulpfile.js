@@ -28,7 +28,6 @@ _gulp2['default'].task('fonts', function () {
 
 _gulp2['default'].task('nodemon', function () {
   return $.nodemon({
-    verbose: true,
     script: 'bin/www',
     ext: 'js',
     watch: ['routes'],
@@ -58,7 +57,9 @@ _gulp2['default'].task('browswerSync', ['nodemon'], function () {
 });
 
 _gulp2['default'].task('build', function () {
-  return _gulp2['default'].src('routes/src/*.js').pipe($.babel()).pipe(_gulp2['default'].dest('routes/'));
+  _gulp2['default'].src(['routes/src/*.js']).pipe($.babel()).pipe(_gulp2['default'].dest('routes/'));
+
+  return _gulp2['default'].src(['./src/app.js']).pipe($.babel()).pipe(_gulp2['default'].dest('./'));
 });
 
 _gulp2['default'].task('default', ['browswerSync', 'nodemon']);
