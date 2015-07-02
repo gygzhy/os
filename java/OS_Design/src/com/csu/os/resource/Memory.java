@@ -149,6 +149,11 @@ public class Memory {
 		return mem;
 	}
 	
+	/**
+	 * 第一个适配 算法
+	 * @param size 要分配的内存大小
+	 * @return 分配出去的内存
+	 */
 	static private Memory firstFit(int size) {
 		Memory cur = head, ret = null;
 		do {
@@ -160,6 +165,11 @@ public class Memory {
 		return ret;
 	}
 	
+	/**
+	 * 下一个适配算法
+	 * @param size 要分配的内存大小
+	 * @return 分配出去的内存
+	 */
 	static private Memory nextFit(int size) {
 		Memory cur = currentAllocatePointer, ret = null;
 		do {
@@ -170,7 +180,11 @@ public class Memory {
 		} while ((cur = cur.next) != head);
 		return ret;
 	}
-	
+	/**
+	 * 最佳适配算法，找到最小的空闲内存
+	 * @param size 要分配的内存大小
+	 * @return 分配出去的内存
+	 */
 	static private Memory bestFit(int size) {
 		Memory cur = head, ret = null;
 		do {
@@ -184,6 +198,11 @@ public class Memory {
 		return ret;
 	}
 	
+	/**
+	 * 最坏适配算法，找到最大的空闲内存块
+	 * @param size 要分配的内存大小
+	 * @return 分配出去的内存
+	 */
 	static private Memory worstFit(int size) {
 		Memory cur = head, ret = null;
 		do {
@@ -228,6 +247,11 @@ public class Memory {
 		return first;
 	}
 	
+	/**
+	 * 将当前内存与另外一块内存合并生成一个新的内存
+	 * @param another 另一块内存
+	 * @return 一块新的内存
+	 */
 	private Memory merge(Memory another) {
 		// 避免两个非空闲分区、循环链别的头和尾部节点在中间有其他节点的情况下和两个不相邻的节点合并
 		if (!isIdle || !another.isIdle || (next != another && prev != another) ||
@@ -249,6 +273,10 @@ public class Memory {
 		return newMem;
 	}
 	
+	/**
+	 * 在内存链表中某个位置后面插入一块内存块
+	 * @param to 要插入的位置
+	 */
 	private void insertAfter(Memory to) {
 		next = to.next;
 		prev = to;

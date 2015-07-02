@@ -6,14 +6,71 @@ const router = express.Router();
 
 // pushing java path
 const javaPath = path.join(__dirname, '..', 'java_util');
-java.classpath.push(path.join(javaPath, 'Test1.jar'));
+java.classpath.push(path.join(javaPath, 'os.jar'));
 
-var Test = java.import('com.csu.Test1');
-var test = new Test();
+const log = console.log;
+const Memory = java.import('com.csu.os.resource.Memory');
+
+// counting the time
+var seconds = 0;
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'go efawef s' });
+
+  initIo(req.app.io);
+  res.render('index', { title: 'Memory test' });
 });
+
+var ioInitialized = false;
+function initIo(io) {
+  if (ioInitialized) return;
+
+  io.on('connection', function(socket) {
+    log('a client connet through socket');
+
+    socket.on('allocate memory', function(data) {
+      if (isFinit(data))
+        var mem = Memory.Allocate(data);
+      socket.emit('allocate memory', mem.getIdSync());
+    });
+
+    socket.on('change allocate mode', function(data) {
+
+    });
+  });
+
+  var timer = setInterval(function() {
+    Memory.Allocate(231);
+
+    var data = {};
+    data.seconds = seconds;
+    data.memory = {
+      sectionNum: Memory.getMemoryAllSectionNumSync(),
+      idleSectionNum: Memory.getMemoryIdleSectionNumSync(),
+      busySectionNum: Memory.getMemoryBusySectionNumSync(),
+      idleSize: Memory.getIdleSizeSync(),
+      busySize: Memory.getTotalSizeSync() - Memory.getIdleSizeSync()
+    };
+
+    data.memory.sections = [];
+    var cur = Memory.getHeadSync();
+    console.log(Memory.getMemoryAllSectionNumSync());
+    for(var i = 0; i < Memory.getMemoryAllSectionNumSync(); i++) {
+      data.memory.sections.push({
+        id: cur.getIdSync(),
+        size: cur.getSizeSync()
+      });
+      cur = cur.getNextSync();
+    }
+
+    // increase counting
+    seconds ++;
+
+    io.emit('beat', data);
+    log('beat');
+  }, 1000);
+
+  ioInitialized = true;
+}
 
 module.exports = router;

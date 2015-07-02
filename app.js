@@ -1,34 +1,71 @@
-var express = require('express');
-var path = require('path');
-var favicon = require('serve-favicon');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
+'use strict';
 
-var routes = require('./routes/index');
-var users = require('./routes/users');
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
 
-var app = express();
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+var _express = require('express');
+
+var _express2 = _interopRequireDefault(_express);
+
+var _path = require('path');
+
+var _path2 = _interopRequireDefault(_path);
+
+var _serveFavicon = require('serve-favicon');
+
+var _serveFavicon2 = _interopRequireDefault(_serveFavicon);
+
+var _morgan = require('morgan');
+
+var _morgan2 = _interopRequireDefault(_morgan);
+
+var _cookieParser = require('cookie-parser');
+
+var _cookieParser2 = _interopRequireDefault(_cookieParser);
+
+var _bodyParser = require('body-parser');
+
+var _bodyParser2 = _interopRequireDefault(_bodyParser);
+
+var _routesIndex = require('./routes/index');
+
+var _routesIndex2 = _interopRequireDefault(_routesIndex);
+
+var _routesUsers = require('./routes/users');
+
+var _routesUsers2 = _interopRequireDefault(_routesUsers);
+
+var _socketIo = require('socket.io');
+
+var _socketIo2 = _interopRequireDefault(_socketIo);
+
+var app = (0, _express2['default'])();
+app.io = (0, _socketIo2['default'])();
+
+exports['default'] = app;
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', _path2['default'].join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(__dirname + '/public/favicon.ico'));
-app.use(logger('dev'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use((0, _morgan2['default'])('dev'));
+app.use(_bodyParser2['default'].json());
+app.use(_bodyParser2['default'].urlencoded({ extended: false }));
+app.use((0, _cookieParser2['default'])());
 
-app.use(express.static(path.join(__dirname, 'bower_components')));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(_express2['default']['static'](_path2['default'].join(__dirname, 'bower_components')));
+app.use(_express2['default']['static'](_path2['default'].join(__dirname, 'public')));
 
-app.use('/', routes);
-app.use('/users', users);
+app.use('/', _routesIndex2['default']);
+app.use('/users', _routesUsers2['default']);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   var err = new Error('Not Found');
   err.status = 404;
   next(err);
@@ -39,7 +76,7 @@ app.use(function(req, res, next) {
 // development error handler
 // will print stacktrace
 if (app.get('env') === 'development') {
-  app.use(function(err, req, res, next) {
+  app.use(function (err, req, res, next) {
     res.status(err.status || 500);
     res.render('error', {
       message: err.message,
@@ -50,13 +87,11 @@ if (app.get('env') === 'development') {
 
 // production error handler
 // no stacktraces leaked to user
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   res.status(err.status || 500);
   res.render('error', {
     message: err.message,
     error: {}
   });
 });
-
-
-module.exports = app;
+module.exports = exports['default'];

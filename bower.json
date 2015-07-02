@@ -55,6 +55,7 @@
     "paper-tabs": "PolymerElements/paper-tabs#^1.0.0",
     "paper-toast": "PolymerElements/paper-toast#^1.0.0",
     "paper-toggle-button": "PolymerElements/paper-toggle-button#^1.0.0",
-    "paper-toolbar": "PolymerElements/paper-toolbar#^1.0.0"
+    "paper-toolbar": "PolymerElements/paper-toolbar#^1.0.0",
+    "chartjs": "~1.0.2"
   }
 }
