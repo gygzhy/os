@@ -2,6 +2,9 @@ package com.csu.os.resource;
 import org.junit.Test;
 import junit.framework.TestCase;
 import static org.junit.Assert.assertThat;
+
+import java.lang.management.MemoryType;
+
 import static org.junit.Assert.assertEquals;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.CoreMatchers.anyOf;
@@ -10,6 +13,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.CoreMatchers.startsWith;
 
+import org.hamcrest.core.IsNull;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -29,7 +33,7 @@ public class Test_Memory {
 		
 		Memory mem4 = Memory.Allocate(15);
 		
-		assertEquals(mem4.getMemCeil(), mem3.getMemFloor() + 1);
+		assertEquals(mem3.getMemCeil() + 1, mem4.getMemFloor());
 	}
 	
 	@Test
@@ -53,31 +57,83 @@ public class Test_Memory {
 		mem3.free();
 		mem4.free();
 		
-		int i = getMemorySectionNum();
 		
-		assertEquals(i, 1);
+		assertEquals(Memory.getMemoryAllSectionNum(), 1);
 	}
 	
 	@Test
-	public void MemorySectionDecreseAfterFreeing() {
+	public void AllocateMemoryWithBF() {
+		Memory.setAllocateMode(Memory.mode.BF);
+		Memory mem1 = Memory.Allocate(300);
+		Memory mem2 = Memory.Allocate(500);
+		Memory mem3 = Memory.Allocate(148);
+		Memory mem4 = Memory.Allocate(58);
+		
+		mem1.free();
+		mem3.free();
+		
+		Memory mem5 = Memory.Allocate(23);
+		
+		assertEquals(mem2.getMemCeil() + 1, mem5.getMemFloor());
+	}
+	
+	@Test
+	public void AllocateMemoryWithWF() {
+		Memory.setAllocateMode(Memory.mode.WF);
+		Memory mem1 = Memory.Allocate(148);
+		Memory mem2 = Memory.Allocate(500);
+		Memory mem3 = Memory.Allocate(1024);
+		Memory mem4 = Memory.Allocate(58);
+		
+		mem1.free();
+		mem3.free();
+		
+		Memory mem5 = Memory.Allocate(23);
+		
+		assertEquals(mem2.getMemCeil() + 1, mem5.getMemFloor());
+	}
+	
+	@Test
+	public void MemorySectionNotMergeWhenHeadSectionAndTailSectionIsIdle() {
 		Memory mem = Memory.Allocate(500);
 		Memory mem2 = Memory.Allocate(200);
 		
-		assertEquals(getMemorySectionNum(), 3);
+		assertEquals(Memory.getMemoryAllSectionNum(), 3);
 		mem.free();
-		assertEquals(getMemorySectionNum(), 3);
-		mem2.free();
-		assertEquals(getMemorySectionNum(), 1);
+		assertEquals(Memory.getMemoryAllSectionNum(), 3);
 	}
 	
-	private int getMemorySectionNum() {
-		int i = 0;
-		Memory cur = Memory.getHead();
-		do {
-			++i;
-		} while ((cur = cur.getNext()) != Memory.getHead());
+	@Test
+	public void MemorySectionMergeWhenNotHeadSectionOrTailSectionIsIdle() {
+		Memory mem = Memory.Allocate(500);
+		Memory mem2 = Memory.Allocate(200);
+		Memory mem3 = Memory.Allocate(600);
 		
-		return i;
+		assertEquals(Memory.getMemoryAllSectionNum(), 4);
+		mem3.free();
+		assertEquals(Memory.getMemoryAllSectionNum(), 3);
+		mem2.free();
+		assertEquals(Memory.getMemoryAllSectionNum(), 2);
+	}
+	
+	@Test
+	public void MemorySectionNotMergeWhenNeighbourSectionsAreBusy() {
+		Memory mem = Memory.Allocate(500);
+		Memory mem2 = Memory.Allocate(200);
+		Memory mem3 = Memory.Allocate(600);
+		
+		assertEquals(Memory.getMemoryAllSectionNum(), 4);
+		mem2.free();
+		assertEquals(Memory.getMemoryAllSectionNum(), 4);
+	}
+	
+	@Test
+	public void NullIsReturnedWhenAllocateSizeIsTooLarge() {
+		Memory mem = Memory.Allocate(300);
+		Memory mem2 = Memory.Allocate(1023);
+		Memory mem3 = Memory.Allocate(2123);
+		
+		assertThat(mem3, new IsNull<Memory>());
 	}
 	
 	@After
