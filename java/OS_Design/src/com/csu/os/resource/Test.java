@@ -16,5 +16,6 @@ public class Test extends TestCase {
 		
 		CPUManager cpuManager = new CPUManager();
 		cpuManager.start();
+
 	}
 }

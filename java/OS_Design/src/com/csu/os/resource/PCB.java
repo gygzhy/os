@@ -89,14 +89,40 @@ public class PCB implements Serializable {
 		this.memory = Memory.Allocate(size, this);
 	}
 	
+	
+	
+	public PCB(UUID uId, String name, int runTime, int level, int memory) throws Exception {
+		super();
+		this.memory = Memory.Allocate(memory);
+		if (this.memory == null) {
+			throw new Exception("Memory Insufficient");
+		}
+		this.uId = uId;
+		this.name = name;
+		this.runTime = runTime;
+		this.level = level;
+		this.waitTime = 0;
+	}
+
+
 	public UUID getpId() {
 		return pId;
+	}
+	public String getpIdString() {
+		if (pId == null)
+			return "";
+		return pId.toString();
 	}
 	public void setpId(UUID pId) {
 		this.pId = pId;
 	}
 	public UUID getuId() {
 		return uId;
+	}
+	public String getuIdString() {
+		if (uId == null)
+			return "";
+		return uId.toString();
 	}
 	public void setuId(UUID uId) {
 		this.uId = uId;

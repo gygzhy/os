@@ -1,5 +1,9 @@
 package com.csu.os.managers;
 
+import java.beans.DefaultPersistenceDelegate;
+
+import org.omg.CORBA.FREE_MEM;
+
 import com.csu.os.tools.Parameter;
 
 /**
@@ -87,8 +91,8 @@ public class CPUManager {
 				
 			}
 		});
-		thread.run();
 		flag = 1;
+		thread.start();
 	}
 	
 	public void stop() {
@@ -103,7 +107,4 @@ public class CPUManager {
 	public PCBManager getPcbManager() {
 		return pcbManager;
 	}
-	
-	
-	
 }

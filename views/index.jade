@@ -1,130 +1,57 @@
 extends layout
 
-block content
-  style.
-    .main {
-      width: 900px;
-      margin: 10px auto;
-      padding: 10px 16px;
-      background: #fff;
-    }
+block memory
   paper-material(elevation=2).main
-    h1= title
+    h1 Memory
+    h3 Change Alogorithm
+    div.change-mode(data-mode="memory")
+      paper-radio-group(selected='FF')
+        paper-radio-button(name='FF') FF
+        paper-radio-button(name='NF') NF
+        paper-radio-button(name='BF') BF
+        paper-radio-button(name='WF') WF
     h3 Memory History
     canvas#memoryHistory(width="900", height='300')
+    h3 Memory Sections
     canvas#memoryPercent(width='300' height='300')
-  script(type="text/javascript").
-    function uuidToHex(uuid) {
-      var g = parseInt(uuid.substr(2, 2), 16);
-      var r = parseInt(uuid.substr(0, 2), 16);
-      r = Math.max(~~(r / 2), 16);
-      g = Math.max(~~(g / 2), 16);
-      return '#' + r.toString(16) + g.toString(16) + uuid.substr(4, 2);
-    }
-    function formatTime(n) {
-      var h, m, s = n;
-      if (s < 60) {
-        return s;
-      } else if (s < 3600) {
-        m = ~~(s / 60);
-        s = n - m * 60;
-        return m + ':' + s;
-      } else {
-        h = ~~(s / 3600);
-        m = ~~((s - h * 3600)/ 60);
-        s = s - h * 3600 - m * 60;
-        return h + ':' + m + ':' + s;
-      }
-    }
+  
+
+block cpu
+  paper-material(elevation=2).main
+    h1 CPU
+    h3 Change Alogorithm
+    div.change-mode(data-mode="cpu")
+      paper-radio-group(selected='0')
+        paper-radio-button(name='0') FCFS
+        paper-radio-button(name='1') LZ
+        paper-radio-button(name='2') DJFKLZ
+        paper-radio-button(name='3') JTYXJ
+        paper-radio-button(name='4') DTYXJ
+        paper-radio-button(name='5') ZDZY
+        paper-radio-button(name='6') ZGXYB
+    h3 Adding process
+      div#inputs
+        div.input-box
+          paper-input(label="name")
+        div.input-box
+          paper-input(label="memory")
+        div.input-box
+          paper-input(label="time")
+        div.input-box
+          paper-input(label="level")
+        paper-button(raised style="background:#99ee44")#update Add
+    h3 Cpu Status
+    table
+      thead
+        tr
+          th name
+          th cpu time
+          th memory size
+          th level
+      tbody#pcbTable
     
-    var data = {
-      labels: ["1"],
-      datasets: [
-        {
-          label: 'Full memory',
-          fillColor: "rgba(220,190,170,0.2)",
-          strokeColor: "rgba(220,190,170,1)",
-          pointColor: "rgba(220,220,220,1)",
-          pointStrokeColor: "#fff",
-          pointHighlightFill: "#fff",
-          pointHighlightStroke: "rgba(220,220,220,1)"
-        },
-        {
-          label: 'Idle Memory',
-          fillColor: "rgba(200,220,190,0.2)",
-          strokeColor: "rgba(200,220,190,1)",
-          pointColor: "rgba(220,220,220,1)",
-          pointStrokeColor: "#fff",
-          pointHighlightFill: "#fff",
-          pointHighlightStroke: "rgba(220,220,220,1)"
-        }
-      ]
-    };
+block hard-disk
+  paper-material(elevation=2).main
+    h1=title
+    h3 Hard Disk
     
-    var ctx = document.getElementById('memoryHistory').getContext('2d');
-    var memoryHistory = new Chart(ctx).Line(data, {bezierCurve: false});
-    
-    ctx = document.getElementById('memoryPercent').getContext('2d');
-    var memoryPercent = new Chart(ctx).Pie();
-    
-    function createArray(size) {
-      var array = [];
-      for(var i =0; i <size; i++) {
-        array.push(Math.random() * 200);
-      }
-      return array;
-    }
-    
-    var raf = (function() {
-      var raf = function(cb) {
-        setTimeout(cb, 26);
-      }
-      if (window.requestAnimationFrame) {
-          raf = window.requestAnimationFrame;
-      } else if (window.webkitRequestAnimationFrame) {
-        raf = window.webkitRequestAnimationFrame;
-      } else if (window.mozRequestAnimationFrame) {
-        raf = window.mozRequestAnimationFrame;
-      }
-      
-      return raf;
-    })();
-    
-    var socket = io.connect('http://localhost:3000');
-    
-    socket.on('heart beat', function(data) {
-      console.log('heart beat');
-      
-      var memory = data.memory;
-      // update line chart
-      if (memoryHistory.datasets[0].points.length > 30) {
-        memoryHistory.removeData();
-      }
-      memoryHistory.addData([memory.busySize, memory.idleSize],
-        formatTime(data.seconds));
-      memoryHistory.update();
-      
-      var delta = memoryPercent.segments.length - memory.sections.length;
-      if (delta > 0) {
-        for(var i = 0; i < delta; i++) {
-          memoryPercent.removeData();
-        }
-      } else if(delta < 0) {
-        for(var i = 0; i < -delta; i++) {
-          memoryPercent.addData({
-            value: 0,
-            color: '#eee',
-            highlight: '#f8f8f8',
-            label: 'idle'
-          });
-        }
-      }
-      
-      for(i = 0; i < memory.sections.length; i++) {
-        memoryPercent.segments[i].value = memory.sections[i].size;
-        memoryPercent.segments[i].fillColor = memory.sections[i].isIdle ? "#eee" : uuidToHex(memory.sections[i].id);
-        memoryPercent.segments[i].label = memory.sections[i].id;
-      }
-      
-      memoryPercent.update();
-    });

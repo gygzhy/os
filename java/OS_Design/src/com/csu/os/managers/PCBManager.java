@@ -280,6 +280,33 @@ public class PCBManager {
 		
 	}
 	
+	public void addPCB(String name, int memory, int level, int cputime) {
+		
+		//新建一个PCB实例 
+		// TODO: uid
+		PCB pcb = null;
+		try {
+			pcb = new PCB(null, name, cputime, level, memory);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			System.out.println(e.getMessage());
+			return;
+		}
+		
+		//判断就绪队列是否已满
+		if(readyPCBList.size() == Parameter.MAX_READY_NUMBER) {
+			
+			//若是，则将PCB添加到初始队列
+			pcb.setStatus(0);
+			initPCBList.add(pcb);
+		} else {
+			
+			//否则，将PCB添加到就绪队列
+			pcb.setStatus(1);
+			readyPCBList.add(pcb);
+		}
+	}
+	
 	
 	/**
 	 * 判断就绪队列是否为空

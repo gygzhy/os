@@ -20,8 +20,12 @@ html
     link(rel="import" href="/paper-icon-button/paper-icon-button.html")
     link(rel="import" href="/iron-iconset/iron-iconset.html")
     link(rel="import" href="/iron-icons/iron-icons.html")
+    link(rel="import" href="/paper-input/paper-input.html")
+    link(rel="import" href="/paper-slider/paper-slider.html")
+    
     script(type="text/javascript" src="/chartjs/Chart.min.js")
     script(type="text/javascript" src="/socket.io/socket.io.js")
+    script(type="text/javascript" src="/jquery/dist/jquery.min.js")
     style.
       body {
         margin: 0;
@@ -30,6 +34,31 @@ html
       }
       paper-header-panel {
         background: #f6f6f6;
+      }
+      
+      .main {
+        width: 900px;
+        margin: 10px auto;
+        padding: 10px 16px;
+        background: #fff;
+      }
+      
+      .input-box {
+        width: 48%;
+        padding: 0 1%;
+        float: left;
+      }
+      
+      table {
+        width: 100%;
+        border: 1px solid #ccc;
+      }
+      table tr {
+        border-top: 1px solid #ccc;
+        border-bottom: 1px solid #ccc;
+      }
+      table tr, table th {
+        padding: 8px 15px;
       }
   body
     paper-drawer-panel
@@ -41,8 +70,176 @@ html
             paper-item CPU
             paper-item Memory
             paper-item Hard Disk
-            paper-item Enter desktop
+            paper-item#enter-desktop Enter desktop
       paper-header-panel(main) 
         paper-toolbar
-        block content
+          label cpu time
+          paper-slider(min="1" max="20000" valu="1000")#cpuTime
+        div#main
+          block cpu
+          block memory
+    script(type="text/javascript").
+      
+      function uuidToHex(uuid) {
+        var g = parseInt(uuid.substr(2, 2), 16);
+        var r = parseInt(uuid.substr(0, 2), 16);
+        r = Math.max(~~(r / 2), 16);
+        g = Math.max(~~(g / 2), 16);
+        return '#' + r.toString(16) + g.toString(16) + uuid.substr(4, 2);
+      }
+      function formatTime(n) {
+        var h, m, s = n;
+        if (s < 60) {
+          return s;
+        } else if (s < 3600) {
+          m = ~~(s / 60);
+          s = n - m * 60;
+          return m + ':' + s;
+        } else {
+          h = ~~(s / 3600);
+          m = ~~((s - h * 3600)/ 60);
+          s = s - h * 3600 - m * 60;
+          return h + ':' + m + ':' + s;
+        }
+      }
+      
+      // initial data for line graph
+      var data = {
+        labels: ["1"],
+        datasets: [
+          {
+            label: 'Full memory',
+            fillColor: "rgba(220,190,170,0.2)",
+            strokeColor: "rgba(220,190,170,1)",
+            pointColor: "rgba(220,220,220,1)",
+            pointStrokeColor: "#fff",
+            pointHighlightFill: "#fff",
+            pointHighlightStroke: "rgba(220,220,220,1)"
+          },
+          {
+            label: 'Idle Memory',
+            fillColor: "rgba(200,220,190,0.2)",
+            strokeColor: "rgba(200,220,190,1)",
+            pointColor: "rgba(220,220,220,1)",
+            pointStrokeColor: "#fff",
+            pointHighlightFill: "#fff",
+            pointHighlightStroke: "rgba(220,220,220,1)"
+          }
+        ]
+      };
+      
+      var ctx = document.getElementById('memoryHistory').getContext('2d');
+      var memoryHistory = new Chart(ctx).Line(data, {bezierCurve: false});
+      
+      ctx = document.getElementById('memoryPercent').getContext('2d');
+      var memoryPercent = new Chart(ctx).Pie();
+      
+      var pcbTable = $('#pcbTable');
+      
+      function createArray(size) {
+        var array = [];
+        for(var i =0; i <size; i++) {
+          array.push(Math.random() * 200);
+        }
+        return array;
+      }
+      
+      var raf = (function() {
+        var raf = function(cb) {
+          setTimeout(cb, 26);
+        }
+        if (window.requestAnimationFrame) {
+            raf = window.requestAnimationFrame;
+        } else if (window.webkitRequestAnimationFrame) {
+          raf = window.webkitRequestAnimationFrame;
+        } else if (window.mozRequestAnimationFrame) {
+          raf = window.mozRequestAnimationFrame;
+        }
+        
+        return raf;
+      })();
+      
+      var socket = io.connect('http://localhost:3000');
+      
+      socket.on('heart beat', function(data) {
+        console.log('heart beat');
+        
+        var memory = data.memory;
+        // update line chart
+        if (memoryHistory.datasets[0].points.length > 30) {
+          memoryHistory.removeData();
+        }
+        memoryHistory.addData([memory.busySize, memory.idleSize],
+          formatTime(data.seconds));
+        memoryHistory.update();
+        
+        var delta = memoryPercent.segments.length - memory.sections.length;
+        if (delta > 0) {
+          for(var i = 0; i < delta; i++) {
+            memoryPercent.removeData();
+          }
+        } else if(delta < 0) {
+          for(var i = 0; i < -delta; i++) {
+            memoryPercent.addData({
+              value: 0,
+              color: '#eee',
+              highlight: '#f8f8f8',
+              label: 'idle'
+            });
+          }
+        }
+        
+        for(i = 0; i < memory.sections.length; i++) {
+          memoryPercent.segments[i].value = memory.sections[i].size;
+          memoryPercent.segments[i].fillColor = memory.sections[i].isIdle ? "#eee" : uuidToHex(memory.sections[i].id);
+          memoryPercent.segments[i].label = memory.sections[i].id;
+        }
+        
+        memoryPercent.update();
+        
+        // update pcb table
+        pcbTable.html("");
+        data.pcbs.ready.forEach(function(val) {
+          pcbTable.append(createTr(val));
+        });
+      });
+      
+      // update cpu time
+      document.querySelector('#cpuTime').addEventListener('value-change', function() {
+        socket.emit('change cpu interval', this.value);
+      });
+      
+      document.querySelector('#update').addEventListener('click', function() {
+        var data = {};
+        [].forEach.call(document.querySelectorAll('#inputs paper-input'), function(val) {
+          data[val.label] = val.value;
+        });
+        console.log(data);
+        socket.emit('add a process', data);
+      });
+      
+      [].forEach.call(document.querySelectorAll('.change-mode paper-radio-button'), function(val) {
+        val.addEventListener('click', function() {
+          var type = $(this).parents('.change-mode').attr('data-mode');
+          socket.emit('change mode ' + type, $(this).attr('name'));
+        });
+      });
+      
+      $('#enter-desktop').on('click', function() {
+        $('paper-header-panel').hide();
+      });
+      
+      $('document').on('keydown', function(e) {
+        
+      });
+      
+      function createTr(pcb) {
+        var tr = $('<tr></tr>');
+        tr.append($('<td>' + pcb.name + '</td>'));
+        tr.append($('<td>' + pcb.cpuTime + '</td>'));
+        tr.append($('<td>' + pcb.memorySize + '</td>'));
+        tr.append($('<td>' + pcb.level + '</td>'));
+        return tr;
+      }
+    
           

@@ -61,7 +61,7 @@ public class Test_Memory {
 		mem3.free();
 		mem4.free();
 		
-		
+		assertEquals(Memory.getTotalSize(), Memory.getIdleSize());
 		assertEquals(Memory.getMemoryAllSectionNum(), 1);
 	}
 	

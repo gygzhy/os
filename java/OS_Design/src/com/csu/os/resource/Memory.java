@@ -68,6 +68,10 @@ public class Memory {
 		return id.toString();
 	}
 
+	public PCB getPcb() {
+		return pcb;
+	}
+
 	// 隐藏构造函数
 	private Memory(int size, int floor, int ceil, boolean idle) {
 		this.size = size;
