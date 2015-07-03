@@ -7,7 +7,9 @@ import java.util.UUID;
 
 import com.csu.os.resource.PCB;
 import com.csu.os.tools.Parameter;
-import com.csu.os.tools.SortById;;
+import com.csu.os.tools.SortByLevel;
+import com.csu.os.tools.SortByRunTime;
+import com.csu.os.tools.SortByWT;
 
 /**
  * PCB类
@@ -144,7 +146,6 @@ public class PCBManager {
 	public void setStatusCode(statusName statusCode) {
 		this.statusCode = statusCode;
 	}
-	
 
 
 	@Override
@@ -223,6 +224,37 @@ public class PCBManager {
 	}
 	
 	
+	/**
+	 * 更新总进程集合方法
+	 */
+	public void updateTotalPCBList() {
+		
+		//将初始化队列中的进程添加到总进程中
+		if(initPCBList.size() > 0) {
+			totalPCBList.addAll(initPCBList);
+		}
+		
+		//将就绪队列中的进程添加到总进程中
+		if(readyPCBList.size() > 0) {
+			totalPCBList.addAll(readyPCBList);
+		}
+		
+		//将等待队列中的进程添加到总进程中
+		if(waitPCBList.size() > 0) {
+			totalPCBList.addAll(waitPCBList);
+		}
+		
+		//将等待队列中的进程添加到总进程中
+		if(finishPCBList.size() > 0) {
+			totalPCBList.addAll(finishPCBList);
+		}
+		
+		//将当前正在执行进程添加到总进程中
+		if(execPCB != null) {
+			totalPCBList.add(execPCB);
+		}
+	}
+	
 	
 	/**
 	 * 添加单个PCB方法
@@ -265,6 +297,59 @@ public class PCBManager {
 	
 	
 	/**
+	 * 检查时，初始化队列与就绪队列之间进程调整方法
+	 */
+	public void checkAdjust() {
+		
+		//判断初始化队列是否为空或就绪队列是否已满
+		if(initPCBList.size() == 0 ||
+				readyPCBList.size() == Parameter.MAX_READY_NUMBER) {
+			
+			//若是，则不进行调整
+			return;
+		} else {
+			
+			//否则，进行调整,将初始化队列中的第一个进程转移到就绪队列中
+			PCB pcb = new PCB(initPCBList.get(0));
+			initPCBList.get(0).getMemory().free();
+			initPCBList.remove(0);
+			
+			pcb.setStatus(1);
+			readyPCBList.add(pcb);
+		}
+		
+	}
+	
+	
+	/**
+	 * 添加PCB时，初始化队列与就绪队列之间的调整
+	 * @param pcb 
+	 */
+	public void addAdjust(PCB pcb) {
+		
+		//判断初始化队列是否为空
+		if(initPCBList.size() > 0) {
+			
+			//若不为空，则将解挂的进程添加到初始化队列中
+			initPCBList.add(pcb);
+		
+		//否则，判断就绪队列是否已满
+		} else if(readyPCBList.size() == Parameter.MAX_READY_NUMBER) {
+			
+			//若是，则将解挂的进程添加到初始化队列中
+			pcb.setStatus(0);
+			initPCBList.add(pcb);
+		} else {
+			
+			//否则，将解挂的进程添加到就绪队列中
+			pcb.setStatus(1);
+			readyPCBList.add(pcb);
+		}
+		
+	}
+	
+	
+	/**
 	 * 挂起进程算法
 	 * @param pId 要挂起的进程的id
 	 * @return 是否挂起成功
@@ -280,6 +365,7 @@ public class PCBManager {
 				//如果相等，则将该进程从初始化队列中移到等待队列中
 				PCB pcb = new PCB(initPCBList.get(i));
 				initPCBList.remove(i);
+				pcb.setStatus(3);
 				waitPCBList.add(pcb);
 				return true;
 			}
@@ -294,7 +380,9 @@ public class PCBManager {
 				//如果相等，则将该进程就绪队列中移到等待队列中
 				PCB pcb = new PCB(readyPCBList.get(i));
 				readyPCBList.remove(i);
+				pcb.setStatus(3);
 				waitPCBList.add(pcb);
+				checkAdjust();
 				return true;
 			}
 		}
@@ -304,6 +392,7 @@ public class PCBManager {
 			
 			//如果是，则将该进程就绪队列中移到等待队列中
 			PCB pcb = new PCB(execPCB);
+			pcb.setStatus(3);
 			waitPCBList.add(pcb);
 			execPCB.getMemory().free();
 			execPCB = null;
@@ -329,24 +418,9 @@ public class PCBManager {
 				
 				//如果相等，则将该进程从初始化队列中移到等待队列中
 				PCB pcb = new PCB(waitPCBList.get(i));
-				waitPCBList.remove(i);
-				
-				//判断初始化队列是否为空
-				if(initPCBList.size() > 0) {
-					
-					//若不为空，则将解挂的进程添加到初始化队列中
-					initPCBList.add(pcb);
-				
-				//否则，判断就绪队列是否已满
-				} else if(readyPCBList.size() == Parameter.MAX_READY_NUMBER) {
-					
-					//若是，则将解挂的进程添加到初始化队列中
-					initPCBList.add(pcb);
-				} else {
-					
-					//否则，将解挂的进程添加到就绪队列中
-				}
-				
+				waitPCBList.remove(i);			
+				addAdjust(pcb);
+	
 				return true;
 			}
 		}
@@ -384,6 +458,7 @@ public class PCBManager {
 				//如果相等，则将该进程就绪队列中删除
 				readyPCBList.get(i).getMemory().free();
 				readyPCBList.remove(i);
+				checkAdjust();
 				return true;
 			}
 		}
@@ -410,6 +485,19 @@ public class PCBManager {
 			return true;
 		}
 		
+		//遍历总进程队列，从中寻找对应要删除的进程
+		for(int i=0; i<totalPCBList.size(); i++) {
+			
+			//判断进程id是否相等
+			if(pId.toString().equals(totalPCBList.get(i).getpId().toString())) {
+				
+				//如果相等，则将该进程从总进程队列中删除
+				totalPCBList.get(i).getMemory().free();
+				totalPCBList.remove(i);
+				return true;
+			}
+		}
+		
 		return false;
 		
 	}
@@ -421,9 +509,13 @@ public class PCBManager {
 	 */
 	public void fcfs() {
 		
+		//先对初始化队列和就绪队列进行调整
+		checkAdjust();
+		
 		//先判断当前是否有进程在执行
 		if(execPCB != null) {
 			//若不是，则退出，等当前进程执行完
+			updateTotalPCBList();
 			execPCB.setRunTime(execPCB.getRunTime()-time);
 			//判断当前进程是否已经执行完毕
 			if(execPCB.getRunTime() <= 0) {
@@ -485,9 +577,14 @@ public class PCBManager {
 	 * 轮转调度算法
 	 */
 	public void lz() {
+		
+		//先对初始化队列和就绪队列进行调整
+		checkAdjust();
+		
 		//为了保险起见，先判断当前执行进程是否为空
 		if(execPCB != null) {
 			//若不是，则退出，等当前进程执行完
+			updateTotalPCBList();
 			return;
 		}
 		
@@ -511,6 +608,7 @@ public class PCBManager {
 			readyPCBList.add(pcb);
 		}
 		
+		updateTotalPCBList();
 		//每执行一次，减去一个对应的时间片
 		execPCB.setRunTime(execPCB.getRunTime()-time);
 		
@@ -565,6 +663,57 @@ public class PCBManager {
 	 */
 	public void jtyx() {
 		
+		//先判断readyPBCList队列是否为空
+		if(isReadyNull()) {
+			//若为空则退出
+			return;
+		}  else {
+			//对readyPCBList就绪队列进行排序
+			Collections.sort(readyPCBList, new SortByLevel());
+		}
+		
+		//对初始化队列和就绪队列进行调整
+		checkAdjust();
+		
+		//将当前就绪队列中第一个进程设置为执行状态，并从就绪队列中移除
+		readyPCBList.get(0).setStatus(2);
+		execPCB = new PCB(readyPCBList.get(0));
+		updateTotalPCBList();
+		readyPCBList.remove(0);
+		
+		//判断初始化队列是否为空
+		if(initPCBList.size() != 0) {
+			//若不为空，则从初始化队列中取一个进程放入到就绪队列中
+			PCB pcb = new PCB(initPCBList.get(0));
+			pcb.setStatus(1);
+			initPCBList.remove(0);
+			readyPCBList.add(pcb);
+		}
+		
+		System.out.println(execPCB);
+		
+		//每执行一次，减去一个轮转时间片
+		execPCB.setRunTime(execPCB.getRunTime()-time);
+		
+		//判断当前进程是否已经执行完毕
+		if(execPCB.getRunTime() <= 0) {
+			
+			//若执行完毕，将当前进程状态设置为完成状态
+			execPCB.setRunTime(0);
+			execPCB.setStatus(4);
+			execPCB.getMemory().free();
+			
+			//并将其添加到完成进程队列中
+			PCB pcb = new PCB(execPCB);
+			finishPCBList.add(pcb);
+			execPCB = null;
+		} else {
+			
+			//否则，将其添加回队列中
+			PCB pcb = new PCB(execPCB);
+			addAdjust(pcb);
+		}
+		
 	}
 	
 	
@@ -572,6 +721,60 @@ public class PCBManager {
 	 * 动态优先调度算法
 	 */
 	public void dtyx() {
+		
+		//先判断readyPBCList队列是否为空
+		if(isReadyNull()) {
+			//若为空则退出
+			return;
+		}  else {
+			//对readyPCBList就绪队列进行排序
+			Collections.sort(readyPCBList, new SortByLevel());
+		}
+		
+		//先对初始化队列和就绪队列进行调整
+		checkAdjust();
+		
+		//将当前就绪队列中第一个进程设置为执行状态，并从就绪队列中移除
+		readyPCBList.get(0).setStatus(2);
+		execPCB = new PCB(readyPCBList.get(0));
+		updateTotalPCBList();
+		readyPCBList.remove(0);
+		
+		//判断初始化队列是否为空
+		if(initPCBList.size() != 0) {
+			//若不为空，则从初始化队列中取一个进程放入到就绪队列中
+			Collections.sort(initPCBList, new SortByLevel());
+			PCB pcb = new PCB(initPCBList.get(0));
+			pcb.setStatus(1);
+			initPCBList.remove(0);
+			readyPCBList.add(pcb);
+		}
+		
+		System.out.println(execPCB);
+		
+		//每执行一次，减去一个轮转时间片
+		execPCB.setRunTime(execPCB.getRunTime()-time);
+		
+		//判断当前进程是否已经执行完毕
+		if(execPCB.getRunTime() <= 0) {
+			
+			//若执行完毕，将当前进程状态设置为完成状态
+			execPCB.setRunTime(0);
+			execPCB.setStatus(4);
+			execPCB.getMemory().free();
+			
+			//并将其添加到完成进程队列中
+			PCB pcb = new PCB(execPCB);
+			finishPCBList.add(pcb);
+			execPCB = null;
+		} else {
+			
+			//若没有执行完毕，则改变其优先级
+			execPCB.setLevel(execPCB.getLevel()-Parameter.LEVEL_CHANGE);
+			//并将其添加回队列中
+			PCB pcb = new PCB(execPCB);
+			addAdjust(pcb);
+		}
 		
 	}
 	
@@ -584,6 +787,7 @@ public class PCBManager {
 		//先判断当前是否有进程在执行
 		if(execPCB != null) {
 			//若不是，则退出，等当前进程执行完
+			updateTotalPCBList();
 			execPCB.setRunTime(execPCB.getRunTime()-time);
 			//判断当前进程是否已经执行完毕
 			if(execPCB.getRunTime() <= 0) {
@@ -607,18 +811,23 @@ public class PCBManager {
 			return;
 		}  else {
 			//对readyPCBList就绪队列进行排序
-			Collections.sort(readyPCBList, new SortById());
+			Collections.sort(readyPCBList, new SortByRunTime());
 		}
+		
+		//先对初始化队列和就绪队列进行调整
+		checkAdjust();
 		
 		//将当前就绪队列中第一个进程设置为执行状态，并从就绪队列中移除
 		readyPCBList.get(0).setStatus(2);
 		execPCB = new PCB(readyPCBList.get(0));
+		updateTotalPCBList();
 		readyPCBList.remove(0);
 		
 		//判断初始化队列是否为空
 		if(initPCBList.size() != 0) {
 			//若不为空，则从初始化队列中取一个进程放入到就绪队列中
 			PCB pcb = new PCB(initPCBList.get(0));
+			pcb.setStatus(1);
 			initPCBList.remove(0);
 			readyPCBList.add(pcb);
 		}
@@ -649,6 +858,63 @@ public class PCBManager {
 	 * 最高响应比优先算法
 	 */
 	public void zgxyb() {
+		
+		//先判断readyPBCList队列是否为空
+		if(isReadyNull()) {
+			//若为空则退出
+			return;
+		}  else {
+			//对readyPCBList就绪队列进行排序
+			Collections.sort(readyPCBList, new SortByWT());
+		}
+		
+		//先对初始化队列和就绪队列进行调整
+		checkAdjust();
+		
+		//将当前就绪队列中第一个进程设置为执行状态，并从就绪队列中移除
+		readyPCBList.get(0).setStatus(2);
+		execPCB = new PCB(readyPCBList.get(0));
+		updateTotalPCBList();
+		readyPCBList.remove(0);
+		
+		//遍历readyPCBList集合，增加其中每个进程的等待时间
+		for(PCB pcb:readyPCBList) {
+			pcb.setWaitTime(pcb.getWaitTime()+Parameter.TIME_SLICE);
+		}
+		
+		//判断初始化队列是否为空
+		if(initPCBList.size() > 0) {
+			//若不为空，则从初始化队列中取一个进程放入到就绪队列中
+			Collections.sort(initPCBList, new SortByWT());
+			PCB pcb = new PCB(initPCBList.get(0));
+			pcb.setStatus(1);
+			initPCBList.remove(0);
+			readyPCBList.add(pcb);
+		}
+		
+		System.out.println(execPCB);
+		
+		//每执行一次，减去一个轮转时间片
+		execPCB.setRunTime(execPCB.getRunTime()-time);
+		
+		//判断当前进程是否已经执行完毕
+		if(execPCB.getRunTime() <= 0) {
+			
+			//若执行完毕，将当前进程状态设置为完成状态
+			execPCB.setRunTime(0);
+			execPCB.setStatus(4);
+			execPCB.getMemory().free();
+			
+			//并将其添加到完成进程队列中
+			PCB pcb = new PCB(execPCB);
+			finishPCBList.add(pcb);
+			execPCB = null;
+		} else {
+			
+			//否则，将其添加回队列中
+			PCB pcb = new PCB(execPCB);
+			addAdjust(pcb);
+		}
 		
 	}
 	
