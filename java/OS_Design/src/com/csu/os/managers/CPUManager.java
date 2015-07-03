@@ -93,8 +93,17 @@ public class CPUManager {
 	
 	public void stop() {
 		
-		thread.;
-		
+		if (flag == 0) {
+			return;
+		}
+		thread.stop();
+		flag = 0;
 	}
+
+	public PCBManager getPcbManager() {
+		return pcbManager;
+	}
+	
+	
 	
 }
