@@ -38,6 +38,7 @@ public class PCBManager {
 	private List<PCB> waitPCBList;//等待状态进程集合
 	private List<PCB> finishPCBList;//完成进程集合
 	private PCB execPCB;//正在执行进程
+	private PCB execPCBFlag;
 	
 	/**
 	 * 无参构造方法
@@ -50,6 +51,7 @@ public class PCBManager {
 		waitPCBList = new ArrayList<PCB>();
 		finishPCBList = new ArrayList<PCB>();
 		execPCB = null;
+		execPCBFlag = null;
 		time = Parameter.TIME_SLICE;
 		maxReadyNumber = Parameter.MAX_READY_NUMBER;
 		
@@ -229,6 +231,9 @@ public class PCBManager {
 	 */
 	public void updateTotalPCBList() {
 		
+		//清空
+		totalPCBList.clear();
+		
 		//将初始化队列中的进程添加到总进程中
 		if(initPCBList.size() > 0) {
 			totalPCBList.addAll(initPCBList);
@@ -250,8 +255,8 @@ public class PCBManager {
 		}
 		
 		//将当前正在执行进程添加到总进程中
-		if(execPCB != null) {
-			totalPCBList.add(execPCB);
+		if(execPCBFlag != null) {
+			totalPCBList.add(execPCBFlag);
 		}
 	}
 	
@@ -284,7 +289,6 @@ public class PCBManager {
 			readyPCBList.add(pcb);
 		}
 		
-		
 	}
 	
 	public void addPCB(String name, String user, int memory, int level, int cputime) {
@@ -296,7 +300,6 @@ public class PCBManager {
 			pcb = new PCB(user, name, cputime, level, memory);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			System.out.println(e.getMessage());
 			return;
 		}
 		
@@ -549,7 +552,6 @@ public class PCBManager {
 		//先判断当前是否有进程在执行
 		if(execPCB != null) {
 			//若不是，则退出，等当前进程执行完
-			updateTotalPCBList();
 			execPCB.setRunTime(execPCB.getRunTime()-time);
 			//判断当前进程是否已经执行完毕
 			if(execPCB.getRunTime() <= 0) {
@@ -618,7 +620,6 @@ public class PCBManager {
 		//为了保险起见，先判断当前执行进程是否为空
 		if(execPCB != null) {
 			//若不是，则退出，等当前进程执行完
-			updateTotalPCBList();
 			return;
 		}
 		
@@ -631,7 +632,6 @@ public class PCBManager {
 		//取就绪队列中的第一个进程，将其状态设置为执行状态，并将其从就绪队列中移除
 		readyPCBList.get(0).setStatus(2);
 		execPCB = new PCB(readyPCBList.get(0));
-		System.out.println(execPCB);
 		readyPCBList.remove(0);
 		
 		//判断初始化队列是否为空
@@ -642,7 +642,6 @@ public class PCBManager {
 			readyPCBList.add(pcb);
 		}
 		
-		updateTotalPCBList();
 		//每执行一次，减去一个对应的时间片
 		execPCB.setRunTime(execPCB.getRunTime()-time);
 		
@@ -712,7 +711,6 @@ public class PCBManager {
 		//将当前就绪队列中第一个进程设置为执行状态，并从就绪队列中移除
 		readyPCBList.get(0).setStatus(2);
 		execPCB = new PCB(readyPCBList.get(0));
-		updateTotalPCBList();
 		readyPCBList.remove(0);
 		
 		//判断初始化队列是否为空
@@ -723,8 +721,6 @@ public class PCBManager {
 			initPCBList.remove(0);
 			readyPCBList.add(pcb);
 		}
-		
-		System.out.println(execPCB);
 		
 		//每执行一次，减去一个轮转时间片
 		execPCB.setRunTime(execPCB.getRunTime()-time);
@@ -771,7 +767,6 @@ public class PCBManager {
 		//将当前就绪队列中第一个进程设置为执行状态，并从就绪队列中移除
 		readyPCBList.get(0).setStatus(2);
 		execPCB = new PCB(readyPCBList.get(0));
-		updateTotalPCBList();
 		readyPCBList.remove(0);
 		
 		//判断初始化队列是否为空
@@ -784,7 +779,6 @@ public class PCBManager {
 			readyPCBList.add(pcb);
 		}
 		
-		System.out.println(execPCB);
 		
 		//每执行一次，减去一个轮转时间片
 		execPCB.setRunTime(execPCB.getRunTime()-time);
@@ -821,7 +815,6 @@ public class PCBManager {
 		//先判断当前是否有进程在执行
 		if(execPCB != null) {
 			//若不是，则退出，等当前进程执行完
-			updateTotalPCBList();
 			execPCB.setRunTime(execPCB.getRunTime()-time);
 			//判断当前进程是否已经执行完毕
 			if(execPCB.getRunTime() <= 0) {
@@ -854,7 +847,6 @@ public class PCBManager {
 		//将当前就绪队列中第一个进程设置为执行状态，并从就绪队列中移除
 		readyPCBList.get(0).setStatus(2);
 		execPCB = new PCB(readyPCBList.get(0));
-		updateTotalPCBList();
 		readyPCBList.remove(0);
 		
 		//判断初始化队列是否为空
@@ -866,7 +858,6 @@ public class PCBManager {
 			readyPCBList.add(pcb);
 		}
 		
-		System.out.println(execPCB);
 		
 		//每执行一次，减去一个轮转时间片
 		execPCB.setRunTime(execPCB.getRunTime()-time);
@@ -908,7 +899,6 @@ public class PCBManager {
 		//将当前就绪队列中第一个进程设置为执行状态，并从就绪队列中移除
 		readyPCBList.get(0).setStatus(2);
 		execPCB = new PCB(readyPCBList.get(0));
-		updateTotalPCBList();
 		readyPCBList.remove(0);
 		
 		//遍历readyPCBList集合，增加其中每个进程的等待时间
@@ -926,7 +916,6 @@ public class PCBManager {
 			readyPCBList.add(pcb);
 		}
 		
-		System.out.println(execPCB);
 		
 		//每执行一次，减去一个轮转时间片
 		execPCB.setRunTime(execPCB.getRunTime()-time);

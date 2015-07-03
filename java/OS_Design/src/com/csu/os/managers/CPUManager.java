@@ -38,8 +38,12 @@ public class CPUManager {
 				// TODO Auto-generated method stub
 				
 				while(true) {
-					
+					pcbManager.updateTotalPCBList();
 					System.out.println(pcbManager.getExecPCB());
+					System.out.println("size:"+pcbManager.getTotalPCBList().size());
+					for(int i=0; i<10; i++) {
+						System.out.println(pcbManager.getTotalPCBList().get(i));
+					}
 					System.out.println(pcbManager.getInitPCBList().size()+"----"+pcbManager.getReadyPCBList().size()+"----"+
 							pcbManager.getWaitPCBList().size()+"----"+pcbManager.getFinishPCBList().size());
 					
