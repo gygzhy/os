@@ -28,8 +28,7 @@ public class PCB implements Serializable {
 	private Memory memory;//�ڴ�ռ�ô�С
 	
 	/**
-	 * �޲ι��췽��
-	 * �����������
+	 * 无参构造方法
 	 */
 	public PCB() {
 		
@@ -45,9 +44,10 @@ public class PCB implements Serializable {
 		memory = Memory.Allocate(Tools.getRandomInteger(1, 100), this);
 	}
 	
+	
 	/**
-	 * ���ι��췽��
-	 * @param pcb
+	 * 带参构造方法
+	 * @param pcb 要copy的pcb
 	 */
 	public PCB(PCB pcb) {
 		

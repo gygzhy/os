@@ -9,9 +9,9 @@ import com.csu.os.tools.Parameter;
 import com.csu.os.tools.SortById;;
 
 /**
- * PCB������
+ * PCB类
  * @author GYGZHY
- * @date   2015��7��3��
+ * @date   2015年7月3日
  */
 public class PCBManager implements Runnable {
 	

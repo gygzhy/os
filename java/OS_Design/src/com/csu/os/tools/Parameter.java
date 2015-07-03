@@ -1,14 +1,16 @@
 package com.csu.os.tools;
 
 /**
- * 参数类
+ * 锟斤拷锟斤拷锟斤拷
  * @author GYGZHY
- * @date   2015年7月3日
+ * @date   2015锟斤拷7锟斤拷3锟斤拷
  */
 public class Parameter {
 	
-	public static final int TIME_SLICE = 1;//时间片大小
-	public static final int SLEEP_TIME = 1000; 
-	public static final int MAX_READY_NUMBER = 100;//最大允许就绪进程数
+	public static int TIME_SLICE = 1;
+	public static int SLEEP_TIME = 1000; 
+	public static int MAX_READY_NUMBER = 100;
+	
+	
 	
 }
