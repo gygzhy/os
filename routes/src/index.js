@@ -18,7 +18,7 @@ var seconds = 0;
 router.get('/', function(req, res, next) {
 
   initIo(req.app.io);
-  res.render('index', { title: 'Memory test' });
+  res.render('index', { title: 'Memory fuck hey' });
 });
 
 var ioInitialized = false;
@@ -42,7 +42,7 @@ function initIo(io) {
   var j = 0;
   var memorys = [];
   var timer = setInterval(function() {
-    memorys.push(Memory.AllocateSync(50));
+    memorys.push(Memory.AllocateSync(10));
     if ((j++ % 2)) {
       memorys.shift().freeSync();
     }

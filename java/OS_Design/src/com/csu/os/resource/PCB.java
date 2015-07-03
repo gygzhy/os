@@ -7,29 +7,29 @@ import java.util.UUID;
 import com.csu.os.tools.Tools;
 
 /**
- * PCBÀà
+ * PCBï¿½ï¿½
  * @author GYGZHY
- * @date   2015Äê7ÔÂ3ÈÕ
+ * @date   2015ï¿½ï¿½7ï¿½ï¿½3ï¿½ï¿½
  */
 public class PCB implements Serializable {
 	
 	
-	private static final long serialVersionUID = 1L;//Ä¬ÈÏÐòÁÐ»¯ÐòºÅ
-	private UUID pId;//½ø³ÌID
-	private UUID uId;//ÓÃ»§ID
-	private String name;//½ø³ÌÃû³Æ
-	//½ø³Ìµ±Ç°×´Ì¬,0Îª³õÊ¼×´Ì¬£¬1Îª¾ÍÐ÷×´Ì¬£¬2ÎªÖ´ÐÐ×´Ì¬£¬3ÎªµÈ´ý×´Ì¬£¬4Îª½áÊø×´Ì¬
+	private static final long serialVersionUID = 1L;//Ä¬ï¿½ï¿½ï¿½ï¿½ï¿½Ð»ï¿½ï¿½ï¿½ï¿½
+	private UUID pId;//ï¿½ï¿½ï¿½ï¿½ID
+	private UUID uId;//ï¿½Ã»ï¿½ID
+	private String name;//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	//ï¿½ï¿½ï¿½Ìµï¿½Ç°×´Ì¬,0Îªï¿½ï¿½Ê¼×´Ì¬ï¿½ï¿½1Îªï¿½ï¿½ï¿½ï¿½×´Ì¬ï¿½ï¿½2ÎªÖ´ï¿½ï¿½×´Ì¬ï¿½ï¿½3Îªï¿½È´ï¿½×´Ì¬ï¿½ï¿½4Îªï¿½ï¿½ï¿½ï¿½×´Ì¬
 	private int status;
-	private int timeCUP;//CPUÕ¼ÓÃÊ±¼ä
-	private int timeRAM;//ÄÚ´æÕ¼ÓÃÊ±¼ä
-	private int runTime;//ÐèÒªÖ´ÐÐµÄÊ±¼ä
-	private int waitTime;//µÈ´ýÊ±¼ä
-	private int level;//ÓÅÏÈ¼¶
-	private int size;//ÄÚ´æÕ¼ÓÃ´óÐ¡
+	private int timeCUP;//CPUÕ¼ï¿½ï¿½Ê±ï¿½ï¿½
+	private int timeRAM;//ï¿½Ú´ï¿½Õ¼ï¿½ï¿½Ê±ï¿½ï¿½
+	private int runTime;//ï¿½ï¿½ÒªÖ´ï¿½Ðµï¿½Ê±ï¿½ï¿½
+	private int waitTime;//ï¿½È´ï¿½Ê±ï¿½ï¿½
+	private int level;//ï¿½ï¿½ï¿½È¼ï¿½
+	private Memory memory;//ï¿½Ú´ï¿½Õ¼ï¿½Ã´ï¿½Ð¡
 	
 	/**
-	 * ÎÞ²Î¹¹Ôì·½·¨
-	 * ÊôÐÔËæ»ú²úÉú
+	 * ï¿½Þ²Î¹ï¿½ï¿½ì·½ï¿½ï¿½
+	 * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	 */
 	public PCB() {
 		
@@ -42,11 +42,11 @@ public class PCB implements Serializable {
 		runTime = timeRAM;
 		waitTime = 0;
 		level = Tools.getRandomInteger(0, 4);
-		size = Tools.getRandomInteger(1, 100);
+		memory = Memory.Allocate(Tools.getRandomInteger(1, 100), this);
 	}
 	
 	/**
-	 * ´ø²Î¹¹Ôì·½·¨
+	 * ï¿½ï¿½ï¿½Î¹ï¿½ï¿½ì·½ï¿½ï¿½
 	 * @param pcb
 	 */
 	public PCB(PCB pcb) {
@@ -59,13 +59,13 @@ public class PCB implements Serializable {
 		this.timeRAM = pcb.getTimeRAM();
 		this.waitTime = pcb.getWaitTime();
 		this.level = pcb.getLevel();
-		this.size = pcb.getSize();
+		this.memory = pcb.getMemory();
 		this.runTime = pcb.getRunTime();
 		
 	}
 	
 	/**
-	 * ´ø²Î¹¹Ôì·½·¨
+	 * ï¿½ï¿½ï¿½Î¹ï¿½ï¿½ì·½ï¿½ï¿½
 	 * @param pId
 	 * @param uId
 	 * @param status
@@ -86,7 +86,7 @@ public class PCB implements Serializable {
 		this.runTime = runTime;
 		this.waitTime = waitTime;
 		this.level = level;
-		this.size = size;
+		this.memory = Memory.Allocate(size, this);
 	}
 	
 	public UUID getpId() {
@@ -131,12 +131,15 @@ public class PCB implements Serializable {
 	public void setLevel(int level) {
 		this.level = level;
 	}
-	public int getSize() {
-		return size;
+	
+	public Memory getMemory() {
+		return memory;
 	}
-	public void setSize(int size) {
-		this.size = size;
+
+	public void setMemory(Memory memory) {
+		this.memory = memory;
 	}
+
 	public int getRunTime() {
 		return runTime;
 	}
@@ -154,16 +157,7 @@ public class PCB implements Serializable {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + level;
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result + ((pId == null) ? 0 : pId.hashCode());
-		result = prime * result + runTime;
-		result = prime * result + size;
-		result = prime * result + status;
-		result = prime * result + timeCUP;
-		result = prime * result + timeRAM;
 		result = prime * result + ((uId == null) ? 0 : uId.hashCode());
-		result = prime * result + waitTime;
 		return result;
 	}
 
@@ -176,34 +170,10 @@ public class PCB implements Serializable {
 		if (getClass() != obj.getClass())
 			return false;
 		PCB other = (PCB) obj;
-		if (level != other.level)
-			return false;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
-		if (pId == null) {
-			if (other.pId != null)
-				return false;
-		} else if (!pId.equals(other.pId))
-			return false;
-		if (runTime != other.runTime)
-			return false;
-		if (size != other.size)
-			return false;
-		if (status != other.status)
-			return false;
-		if (timeCUP != other.timeCUP)
-			return false;
-		if (timeRAM != other.timeRAM)
-			return false;
 		if (uId == null) {
 			if (other.uId != null)
 				return false;
 		} else if (!uId.equals(other.uId))
-			return false;
-		if (waitTime != other.waitTime)
 			return false;
 		return true;
 	}
@@ -212,8 +182,8 @@ public class PCB implements Serializable {
 	public String toString() {
 		return "PCB [pId=" + pId + ", uId=" + uId + ", name=" + name + ", status=" + status + ", timeCUP=" + timeCUP
 				+ ", timeRAM=" + timeRAM + ", runTime=" + runTime + ", waitTime=" + waitTime + ", level=" + level
-				+ ", size=" + size + "]";
+				+ ", memory=" + memory + "]";
 	}
-
+	
 	
 }

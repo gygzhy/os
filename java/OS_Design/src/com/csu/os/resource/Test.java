@@ -14,7 +14,7 @@ public class Test extends TestCase {
 	public static void main(String[] args) {
 		
 		PCBManager pManager = new PCBManager();
-		for(int i=0; i<10; i++) {
+		for(int i=0; i<1000; i++) {
 			pManager.addPCB();
 		}
 		pManager.setArithmeticStatus(5);

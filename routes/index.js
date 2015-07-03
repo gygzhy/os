@@ -51,7 +51,7 @@ function initIo(io) {
   var j = 0;
   var memorys = [];
   var timer = setInterval(function () {
-    memorys.push(Memory.AllocateSync(50));
+    memorys.push(Memory.AllocateSync(78));
     if (j++ % 2) {
       memorys.shift().freeSync();
     }

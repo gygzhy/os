@@ -46,6 +46,8 @@ public class Memory {
 	// 空闲块的总大小
 	static private int idleSize;
 	// 占用本内存的进程
+	
+	private PCB pcb;
 		
 	
 	static {
@@ -127,7 +129,7 @@ public class Memory {
 	}
 	
 	// 内存分配入口
-	static public Memory Allocate(int size) {
+	static public Memory Allocate(int size, PCB pcb) {
 		Memory mem = null;
 		switch(allocateMode) {
 		case FF:
@@ -150,11 +152,16 @@ public class Memory {
 		if (mem != null) {
 			idleSize -= mem.size;
 			currentAllocatePointer = mem;
+			mem.pcb = pcb;
 			
 			// log.log("{'Allocate': {'size': %d, 'id': '%s'}}", mem.size, mem.getId());
 		}
 		
 		return mem;
+	}
+	
+	static public Memory Allocate(int size) {
+		return Allocate(size, null);
 	}
 	
 	/**
@@ -389,4 +396,12 @@ public class Memory {
 			return false;
 		return true;
 	}
+
+	@Override
+	public String toString() {
+		return "Memory [size=" + size + ", id=" + id + ", isIdle=" + isIdle + "]";
+	}
+
+	
+
 }

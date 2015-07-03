@@ -1,48 +1,35 @@
-'use strict';
+var gulp = require('gulp');
+var gulpLoadPlugins = require('gulp-load-plugins');
+var browserSync = require('browser-sync');
+var del = require('del');
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-var _gulp = require('gulp');
-
-var _gulp2 = _interopRequireDefault(_gulp);
-
-var _gulpLoadPlugins = require('gulp-load-plugins');
-
-var _gulpLoadPlugins2 = _interopRequireDefault(_gulpLoadPlugins);
-
-var _browserSync = require('browser-sync');
-
-var _browserSync2 = _interopRequireDefault(_browserSync);
-
-var _del = require('del');
-
-var _del2 = _interopRequireDefault(_del);
-
-var $ = (0, _gulpLoadPlugins2['default'])();
-var reload = _browserSync2['default'].reload;
+var $ = gulpLoadPlugins();
+var reload = browserSync.reload;
 
 // Copy web fonts to dist
-_gulp2['default'].task('fonts', function () {
-  return _gulp2['default'].src(['app/fonts/**']).pipe(_gulp2['default'].dest('dist/fonts')).pipe($.size({ title: 'fonts' }));
+gulp.task('fonts', function() {
+  return gulp.src(['app/fonts/**'])
+    .pipe(gulp.dest('dist/fonts'))
+    .pipe($.size({title: 'fonts'}));
 });
 
-_gulp2['default'].task('nodemon', function () {
-  return $.nodemon({
-    script: 'bin/www',
+gulp.task('nodemon', function() {
+	return $.nodemon({
+	  script: 'bin/www',
     ext: 'js',
-    watch: ['routes'],
-    tasks: ['build']
-  }).on('restart', function () {
+    watch: ['routes']
+	}).on('restart', function() {
     console.log('restarted');
   });
 });
 
-_gulp2['default'].task('test', function () {
-  return _gulp2['default'].src('./test/memory.js').pipe($.jasmine());
+gulp.task('test', function() {
+    return gulp.src('./test/memory.js')
+        .pipe($.jasmine());
 });
 
-_gulp2['default'].task('browswerSync', ['nodemon'], function () {
-  return (0, _browserSync2['default'])({
+gulp.task('browswerSync', ['nodemon'], function() {
+  return browserSync({
     notify: false,
     // Customize the BrowserSync console logging prefix
     logPrefix: 'WSK',
@@ -56,10 +43,14 @@ _gulp2['default'].task('browswerSync', ['nodemon'], function () {
   });
 });
 
-_gulp2['default'].task('build', function () {
-  _gulp2['default'].src(['routes/src/*.js']).pipe($.babel()).pipe(_gulp2['default'].dest('routes/'));
+gulp.task('build', function() {
+  gulp.src(['routes/src/*.js'])
+    .pipe($.babel())
+    .pipe(gulp.dest('routes/'));
 
-  return _gulp2['default'].src(['./src/app.js']).pipe($.babel()).pipe(_gulp2['default'].dest('./'));
+  return gulp.src(['./src/app.js'])
+      .pipe($.babel())
+      .pipe(gulp.dest('./'));
 });
 
-_gulp2['default'].task('default', ['browswerSync', 'nodemon']);
+gulp.task('default', ['browswerSync', 'nodemon']);
