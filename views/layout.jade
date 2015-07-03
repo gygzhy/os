@@ -15,23 +15,30 @@ html
     link(rel="import" href="/paper-material/paper-material.html")
     link(rel="import" href="/paper-radio-group/paper-radio-group.html")
     link(rel="import" href="/paper-radio-button/paper-radio-button.html")
+    link(rel="import" href="/paper-behaviors/paper-button-behavior.html")
+    link(rel="import" href="/neon-animation/neon-animations.html")
+    link(rel="import" href="/paper-icon-button/paper-icon-button.html")
+    link(rel="import" href="/iron-iconset/iron-iconset.html")
+    link(rel="import" href="/iron-icons/iron-icons.html")
     script(type="text/javascript" src="/chartjs/Chart.min.js")
     script(type="text/javascript" src="/socket.io/socket.io.js")
     style.
       body {
         margin: 0;
         padding: 0;
+        background: #f6f6f6;
       }
   body
     paper-drawer-panel
       paper-header-panel(drawer)
         paper-toolbar(style="background: #3333aa")
-          paper-button(raised style="background: red") Toggle
+          paper-icon-button(icon='menu' alt='menu')
         paper-material
-          paper-menu
+          paper-menu(selected=0)
             paper-item CPU
             paper-item Memory
             paper-item Hard Disk
+            paper-item Enter desktop
       paper-header-panel(main) 
         paper-toolbar
         block content

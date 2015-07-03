@@ -1,5 +1,9 @@
-package com.csu.os.resource;
+package com.csu.os.test;
 import org.junit.Test;
+
+import com.csu.os.resource.Memory;
+import com.csu.os.resource.Memory.mode;
+
 import junit.framework.TestCase;
 import static org.junit.Assert.assertThat;
 
