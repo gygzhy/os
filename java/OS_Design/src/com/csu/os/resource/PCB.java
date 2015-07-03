@@ -14,18 +14,18 @@ import com.csu.os.tools.Tools;
 public class PCB implements Serializable {
 	
 	
-	private static final long serialVersionUID = 1L;//Ĭ�����л����
-	private UUID pId;//����ID
-	private UUID uId;//�û�ID
-	private String name;//��������
-	//���̵�ǰ״̬,0Ϊ��ʼ״̬��1Ϊ����״̬��2Ϊִ��״̬��3Ϊ�ȴ�״̬��4Ϊ����״̬
+	private static final long serialVersionUID = 1L;//默认序列化序号
+	private UUID pId;//进程ID
+	private UUID uId;//用户ID
+	private String name;//进程名称
+	//进程当前状态,0为初始状态，1为就绪状态，2为执行状态，3为等待状态，4为结束状态
 	private int status;
-	private int timeCUP;//CPUռ��ʱ��
-	private int timeRAM;//�ڴ�ռ��ʱ��
-	private int runTime;//��Ҫִ�е�ʱ��
-	private int waitTime;//�ȴ�ʱ��
-	private int level;//���ȼ�
-	private Memory memory;//�ڴ�ռ�ô�С
+	private int timeCUP;//CPU占用时间
+	private int timeRAM;//内存占用时间
+	private int runTime;//需要执行的时间
+	private int waitTime;//等待时间
+	private int level;//优先级
+	private Memory memory;//内存
 	
 	/**
 	 * 无参构造方法
