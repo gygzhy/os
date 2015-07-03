@@ -26,11 +26,13 @@ public class PCB implements Serializable {
 	private int waitTime;//等待时间
 	private int level;//优先级
 	private Memory memory;//内存
+	private String user; // 用户的名字
 	
 	/**
 	 * 无参构造方法
+	 * @throws Exception 
 	 */
-	public PCB() {
+	public PCB() throws Exception {
 		
 		pId = UUID.randomUUID();
 		uId = UUID.randomUUID();
@@ -75,8 +77,9 @@ public class PCB implements Serializable {
 	 * @param waitTime
 	 * @param level
 	 * @param size
+	 * @throws Exception 
 	 */
-	public PCB(UUID pId, UUID uId, int status, int timeCUP, int timeRAM, int runTime, int waitTime, int level, int size) {
+	public PCB(UUID pId, UUID uId, int status, int timeCUP, int timeRAM, int runTime, int waitTime, int level, int size) throws Exception {
 		super();
 		this.pId = pId;
 		this.uId = uId;
@@ -91,17 +94,19 @@ public class PCB implements Serializable {
 	
 	
 	
-	public PCB(UUID uId, String name, int runTime, int level, int memory) throws Exception {
+	public PCB(String user, String name, int runTime, int level, int memory) throws Exception {
 		super();
 		this.memory = Memory.Allocate(memory);
-		if (this.memory == null) {
-			throw new Exception("Memory Insufficient");
-		}
-		this.uId = uId;
+		this.user = user;
 		this.name = name;
 		this.runTime = runTime;
 		this.level = level;
 		this.waitTime = 0;
+	}
+
+
+	public String getUser() {
+		return user;
 	}
 
 

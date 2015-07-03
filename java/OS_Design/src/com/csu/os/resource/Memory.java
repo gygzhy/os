@@ -133,7 +133,7 @@ public class Memory {
 	}
 	
 	// 内存分配入口
-	static public Memory Allocate(int size, PCB pcb) {
+	static public Memory Allocate(int size, PCB pcb) throws Exception {
 		Memory mem = null;
 		switch(allocateMode) {
 		case FF:
@@ -153,6 +153,10 @@ public class Memory {
 			break;
 		}
 		
+		if (mem == null) {
+			throw new Exception("Memmory Insufficient");
+		}
+		
 		if (mem != null) {
 			idleSize -= mem.size;
 			currentAllocatePointer = mem;
@@ -164,7 +168,7 @@ public class Memory {
 		return mem;
 	}
 	
-	static public Memory Allocate(int size) {
+	static public Memory Allocate(int size) throws Exception {
 		return Allocate(size, null);
 	}
 	

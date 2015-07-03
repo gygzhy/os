@@ -26,7 +26,7 @@ import org.junit.Test;
 
 public class Test_Memory {
 	@Test
-	public void AllocateMemoryWithNF() {
+	public void AllocateMemoryWithNF() throws Exception {
 		Memory mem = Memory.Allocate(300);
 		Memory.setAllocateMode(Memory.mode.NF);
 		
@@ -41,14 +41,14 @@ public class Test_Memory {
 	}
 	
 	@Test
-	public void AllocateMemoryWithFF() {
+	public void AllocateMemoryWithFF() throws Exception {
 		Memory mem = Memory.Allocate(300);
 		assertEquals(mem.getSize(), 300);
 		assertEquals(2048 - 300, Memory.getIdleSize());
 	}
 	
 	@Test
-	public void MemoryHaveOneSectionAfterFreeingAll() {
+	public void MemoryHaveOneSectionAfterFreeingAll() throws Exception {
 		Memory mem = Memory.Allocate(200);
 		Memory mem2 = Memory.Allocate(500);
 		Memory mem3 = Memory.Allocate(20);
@@ -66,7 +66,7 @@ public class Test_Memory {
 	}
 	
 	@Test
-	public void AllocateMemoryWithBF() {
+	public void AllocateMemoryWithBF() throws Exception {
 		Memory.setAllocateMode(Memory.mode.BF);
 		Memory mem1 = Memory.Allocate(300);
 		Memory mem2 = Memory.Allocate(500);
@@ -82,7 +82,7 @@ public class Test_Memory {
 	}
 	
 	@Test
-	public void AllocateMemoryWithWF() {
+	public void AllocateMemoryWithWF() throws Exception {
 		Memory.setAllocateMode(Memory.mode.WF);
 		Memory mem1 = Memory.Allocate(148);
 		Memory mem2 = Memory.Allocate(500);
@@ -98,7 +98,7 @@ public class Test_Memory {
 	}
 	
 	@Test
-	public void MemorySectionNotMergeWhenHeadSectionAndTailSectionIsIdle() {
+	public void MemorySectionNotMergeWhenHeadSectionAndTailSectionIsIdle() throws Exception {
 		Memory mem = Memory.Allocate(500);
 		Memory mem2 = Memory.Allocate(200);
 		
@@ -108,7 +108,7 @@ public class Test_Memory {
 	}
 	
 	@Test
-	public void MemorySectionMergeWhenNotHeadSectionOrTailSectionIsIdle() {
+	public void MemorySectionMergeWhenNotHeadSectionOrTailSectionIsIdle() throws Exception {
 		Memory mem = Memory.Allocate(500);
 		Memory mem2 = Memory.Allocate(200);
 		Memory mem3 = Memory.Allocate(600);
@@ -121,7 +121,7 @@ public class Test_Memory {
 	}
 	
 	@Test
-	public void MemorySectionNotMergeWhenNeighbourSectionsAreBusy() {
+	public void MemorySectionNotMergeWhenNeighbourSectionsAreBusy() throws Exception {
 		Memory mem = Memory.Allocate(500);
 		Memory mem2 = Memory.Allocate(200);
 		Memory mem3 = Memory.Allocate(600);
@@ -132,7 +132,7 @@ public class Test_Memory {
 	}
 	
 	@Test
-	public void NullIsReturnedWhenAllocateSizeIsTooLarge() {
+	public void NullIsReturnedWhenAllocateSizeIsTooLarge() throws Exception {
 		Memory mem = Memory.Allocate(300);
 		Memory mem2 = Memory.Allocate(1023);
 		Memory mem3 = Memory.Allocate(2123);

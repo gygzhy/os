@@ -48,10 +48,49 @@ block cpu
           th cpu time
           th memory size
           th level
+          th user
       tbody#pcbTable
     
 block hard-disk
   paper-material(elevation=2).main
-    h1=title
+    h1 hard disk
     h3 Hard Disk
+
+block desktop
+  style.
+    #desktop {
+      display: none
+    }
+    #login {
+      width: 400px;
+      margin: 50px auto;
+      padding: 50px 60px;
+    }
+  div#desktop
+    paper-material#login
+      h2 logging
+      paper-input(label="username")#username
+      paper-button(raised style="background: #66ff44")#login-btn Login
+    paper-material#menu-bar
+    paper-material#right-menu
+      paper-menu
+        paper-item#new-file new file
+        paper-item#new-folder new folder
+        paper-item#new-process new process
+      
+  script.
     
+    var user = 'admin';
+    $('#login-btn').on('click', function() {
+      socket.emit('user login', $('#username').val());
+      user = $('#username').val();
+      $(this).hide();
+    });
+    
+    $('#desktop').on('click', function(e) {
+      if (user === 'admin') {
+          return;
+      }
+      
+      
+    });

@@ -65,7 +65,7 @@ function initIo(io) {
     socket.on('add a process', function (data) {
       console.log('a process is about to be created');
       try {
-        pcbManager.addPCBSync(data.name, parseInt(data.memory), parseInt(data.level), parseInt(data.time));
+        pcbManager.addPCBSync(data.name, data.user, parseInt(data.memory), parseInt(data.level), parseInt(data.time));
       } catch (e) {
         console.log('adding pcb fail' + e);
       }
@@ -81,6 +81,10 @@ function initIo(io) {
       console.log('change mode cpu');
 
       pcbManager.setArithmeticStatusSync(parseInt(data));
+    });
+
+    socket.on('user login', function (data) {
+      console.log('user ' + data + ' login');
     });
   });
 
@@ -128,7 +132,8 @@ function getPcbInfo(data) {
         cpuTime: pcb.getRunTimeSync(),
         memorySize: pcb.getMemorySync().getSizeSync(),
         level: pcb.getLevelSync(),
-        status: pcb.getStatusSync()
+        status: pcb.getStatusSync(),
+        user: pcb.getUserSync()
       });
     }
     return ret;

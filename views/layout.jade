@@ -26,6 +26,9 @@ html
     script(type="text/javascript" src="/chartjs/Chart.min.js")
     script(type="text/javascript" src="/socket.io/socket.io.js")
     script(type="text/javascript" src="/jquery/dist/jquery.min.js")
+    script.
+      var socket = io.connect('http://localhost:3000');
+      socket.emit('user login', 'admin');
     style.
       body {
         margin: 0;
@@ -78,6 +81,8 @@ html
         div#main
           block cpu
           block memory
+          block hard-disk
+    block desktop
     script(type="text/javascript").
       
       function uuidToHex(uuid) {
@@ -159,8 +164,6 @@ html
         return raf;
       })();
       
-      var socket = io.connect('http://localhost:3000');
-      
       socket.on('heart beat', function(data) {
         console.log('heart beat');
         
@@ -214,7 +217,7 @@ html
         [].forEach.call(document.querySelectorAll('#inputs paper-input'), function(val) {
           data[val.label] = val.value;
         });
-        console.log(data);
+        data.user = 'admin';
         socket.emit('add a process', data);
       });
       
@@ -226,12 +229,10 @@ html
       });
       
       $('#enter-desktop').on('click', function() {
-        $('paper-header-panel').hide();
+        $('paper-drawer-panel').hide();
+        $('#desktop').show();
       });
       
-      $('document').on('keydown', function(e) {
-        
-      });
       
       function createTr(pcb) {
         var tr = $('<tr></tr>');
@@ -239,6 +240,7 @@ html
         tr.append($('<td>' + pcb.cpuTime + '</td>'));
         tr.append($('<td>' + pcb.memorySize + '</td>'));
         tr.append($('<td>' + pcb.level + '</td>'));
+        tr.append($('<td>' + pcb.user + '</td>'))
         return tr;
       }
     

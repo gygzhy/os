@@ -262,7 +262,14 @@ public class PCBManager {
 	public void addPCB() {
 		
 		//新建一个PCB实例
-		PCB pcb = new PCB();
+		PCB pcb = null;
+		try {
+			pcb = new PCB();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return;
+		}
 		
 		//判断就绪队列是否已满
 		if(readyPCBList.size() == Parameter.MAX_READY_NUMBER) {
@@ -280,13 +287,13 @@ public class PCBManager {
 		
 	}
 	
-	public void addPCB(String name, int memory, int level, int cputime) {
+	public void addPCB(String name, String user, int memory, int level, int cputime) {
 		
 		//新建一个PCB实例 
 		// TODO: uid
 		PCB pcb = null;
 		try {
-			pcb = new PCB(null, name, cputime, level, memory);
+			pcb = new PCB(user, name, cputime, level, memory);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			System.out.println(e.getMessage());
