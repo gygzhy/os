@@ -1,12 +1,26 @@
 extends layout
 
 block content
-  h1= title
-  h3 hey com 
-  p Welcome to #{title}
-  canvas#memoryHistory(width="600", height='300')
-  canvas#memoryPercent(width='300' height='300')
+  style.
+    .main {
+      width: 900px;
+      margin: 10px auto;
+      padding: 10px 16px;
+      background: #fff;
+    }
+  paper-material(elevation=2).main
+    h1= title
+    h3 Memory History
+    canvas#memoryHistory(width="900", height='300')
+    canvas#memoryPercent(width='300' height='300')
   script(type="text/javascript").
+    function uuidToHex(uuid) {
+      var g = parseInt(uuid.substr(2, 2), 16);
+      var r = parseInt(uuid.substr(0, 2), 16);
+      r = Math.max(~~(r / 2), 16);
+      g = Math.max(~~(g / 2), 16);
+      return '#' + r.toString(16) + g.toString(16) + uuid.substr(4, 2);
+    }
     function formatTime(n) {
       var h, m, s = n;
       if (s < 60) {
@@ -76,42 +90,41 @@ block content
       return raf;
     })();
     
-    // store all the memory ids
-    var memorySections = [];
     var socket = io.connect('http://localhost:3000');
     
-    socket.on('beat', function(data) {
+    socket.on('heart beat', function(data) {
       console.log('heart beat');
+      
+      var memory = data.memory;
       // update line chart
       if (memoryHistory.datasets[0].points.length > 30) {
         memoryHistory.removeData();
       }
-      memoryHistory.addData([data.memory.busySize, data.memory.idleSize],
+      memoryHistory.addData([memory.busySize, memory.idleSize],
         formatTime(data.seconds));
       memoryHistory.update();
       
-      // update pie chart
-      data.memory.sections.forEach(function(val, index) {
-        var n = 0;
-        if ((n = memorySections.indexOf(val.id)) !== -1) {
-          console.log(n);
-          for(var i = index; i < n; i ++) {
-            memoryPercent.removeData(i);
-          }
-          
-          memoryPercent.segments[0].value = val.size;
-        } else {
-          memoryPercent.addData({
-            value: val.size,
-            color: '#aaefef',
-            highlight: '#eee',
-            label: val.id
-          }, index);
+      var delta = memoryPercent.segments.length - memory.sections.length;
+      if (delta > 0) {
+        for(var i = 0; i < delta; i++) {
+          memoryPercent.removeData();
         }
-      });
-      memorySections = data.memory.sections.map((val)=>{
-        return val.id;
-      });
+      } else if(delta < 0) {
+        for(var i = 0; i < -delta; i++) {
+          memoryPercent.addData({
+            value: 0,
+            color: '#eee',
+            highlight: '#f8f8f8',
+            label: 'idle'
+          });
+        }
+      }
+      
+      for(i = 0; i < memory.sections.length; i++) {
+        memoryPercent.segments[i].value = memory.sections[i].size;
+        memoryPercent.segments[i].fillColor = memory.sections[i].isIdle ? "#eee" : uuidToHex(memory.sections[i].id);
+        memoryPercent.segments[i].label = memory.sections[i].id;
+      }
       
       memoryPercent.update();
     });

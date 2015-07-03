@@ -9,10 +9,14 @@ import javax.swing.text.html.HTMLDocument.HTMLReader.IsindexAction;
 
 import org.omg.CORBA.PRIVATE_MEMBER;
 
+import com.csu.os.utility.Logger;
+
 public class Memory {
 	public static enum mode {
 		FF, NF, BF, WF, QF
 	}
+	
+	static public final Logger log = new Logger("MEM");
 	
 	static private final int totalSize = 2048;
 	static private final String unit = "byte";
@@ -41,6 +45,8 @@ public class Memory {
 	static private Memory head;
 	// 空闲块的总大小
 	static private int idleSize;
+	// 占用本内存的进程
+		
 	
 	static {
 		head = new Memory(totalSize, 0, totalSize - 1, true);
@@ -144,6 +150,8 @@ public class Memory {
 		if (mem != null) {
 			idleSize -= mem.size;
 			currentAllocatePointer = mem;
+			
+			// log.log("{'Allocate': {'size': %d, 'id': '%s'}}", mem.size, mem.getId());
 		}
 		
 		return mem;

@@ -39,9 +39,13 @@ function initIo(io) {
     });
   });
 
+  var j = 0;
+  var memorys = [];
   var timer = setInterval(function() {
-    Memory.Allocate(231);
-
+    memorys.push(Memory.AllocateSync(50));
+    if ((j++ % 2)) {
+      memorys.shift().freeSync();
+    }
     var data = {};
     data.seconds = seconds;
     data.memory = {
@@ -58,7 +62,8 @@ function initIo(io) {
     for(var i = 0; i < Memory.getMemoryAllSectionNumSync(); i++) {
       data.memory.sections.push({
         id: cur.getIdSync(),
-        size: cur.getSizeSync()
+        size: cur.getSizeSync(),
+        isIdle: cur.isIdleSync()
       });
       cur = cur.getNextSync();
     }
@@ -66,8 +71,8 @@ function initIo(io) {
     // increase counting
     seconds ++;
 
-    io.emit('beat', data);
-    log('beat');
+    io.emit('heart beat', data);
+    log('heart beat');
   }, 1000);
 
   ioInitialized = true;
