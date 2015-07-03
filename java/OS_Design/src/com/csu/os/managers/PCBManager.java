@@ -38,7 +38,7 @@ public class PCBManager {
 	private List<PCB> waitPCBList;//等待状态进程集合
 	private List<PCB> finishPCBList;//完成进程集合
 	private PCB execPCB;//正在执行进程
-	private PCB execPCBFlag;
+	private PCB execPCBFlag;//标记正在执行的进程
 	
 	/**
 	 * 无参构造方法
@@ -148,7 +148,14 @@ public class PCBManager {
 	public void setStatusCode(statusName statusCode) {
 		this.statusCode = statusCode;
 	}
+	
+	public PCB getExecPCBFlag() {
+		return execPCBFlag;
+	}
 
+	public void setExecPCBFlag(PCB execPCBFlag) {
+		this.execPCBFlag = execPCBFlag;
+	}
 
 	@Override
 	public int hashCode() {
@@ -254,9 +261,20 @@ public class PCBManager {
 			totalPCBList.addAll(finishPCBList);
 		}
 		
+		if(finishPCBList.size() == totalPCBList.size()) {
+			return;
+		}
+		
 		//将当前正在执行进程添加到总进程中
-		if(execPCBFlag != null) {
-			totalPCBList.add(execPCBFlag);
+		if(execPCB != null) {
+			totalPCBList.add(execPCB);
+		} else if(execPCBFlag != null) {
+			for(int i=0; i<totalPCBList.size(); i++) {
+				if (totalPCBList.get(i).getpId().toString().equals(execPCBFlag.getpId().toString())) {
+					totalPCBList.set(i, execPCBFlag);
+					break;
+				}
+			}
 		}
 	}
 	
@@ -429,6 +447,7 @@ public class PCBManager {
 			
 			//如果是，则将该进程就绪队列中移到等待队列中
 			PCB pcb = new PCB(execPCB);
+			execPCBFlag = new PCB(execPCB);
 			pcb.setStatus(3);
 			waitPCBList.add(pcb);
 			execPCB.getMemory().free();
@@ -517,6 +536,7 @@ public class PCBManager {
 		if(pId.toString().equals(execPCB.getpId().toString())) {
 			
 			//如果是，则将该进程删除
+			execPCBFlag = new PCB(execPCB);
 			execPCB.getMemory().free();
 			execPCB = null;
 			return true;
@@ -557,6 +577,7 @@ public class PCBManager {
 			if(execPCB.getRunTime() <= 0) {
 				
 				//若执行完毕，将当前进程状态设置为完成状态
+				execPCBFlag = new PCB(execPCB);
 				execPCB.setRunTime(0);
 				execPCB.setStatus(4);
 				
@@ -596,6 +617,7 @@ public class PCBManager {
 		if(execPCB.getRunTime() <= 0) {
 			
 			//若执行完毕，将当前进程状态设置为完成状态
+			execPCBFlag = new PCB(execPCB);
 			execPCB.setRunTime(0);
 			execPCB.setStatus(4);
 			execPCB.getMemory().free();
@@ -649,6 +671,7 @@ public class PCBManager {
 		if(execPCB.getRunTime() <= 0) {
 			
 			//若执行完毕
+			execPCBFlag = new PCB(execPCB);
 			if(execPCB.getRunTime() < 0) {
 				execPCB.setRunTime(0);
 			}
@@ -729,6 +752,7 @@ public class PCBManager {
 		if(execPCB.getRunTime() <= 0) {
 			
 			//若执行完毕，将当前进程状态设置为完成状态
+			execPCBFlag = new PCB(execPCB);
 			execPCB.setRunTime(0);
 			execPCB.setStatus(4);
 			execPCB.getMemory().free();
@@ -742,6 +766,8 @@ public class PCBManager {
 			//否则，将其添加回队列中
 			PCB pcb = new PCB(execPCB);
 			addAdjust(pcb);
+			execPCB.getMemory().free();
+			execPCB = null;
 		}
 		
 	}
@@ -770,7 +796,7 @@ public class PCBManager {
 		readyPCBList.remove(0);
 		
 		//判断初始化队列是否为空
-		if(initPCBList.size() != 0) {
+		if(initPCBList.size() > 0) {
 			//若不为空，则从初始化队列中取一个进程放入到就绪队列中
 			Collections.sort(initPCBList, new SortByLevel());
 			PCB pcb = new PCB(initPCBList.get(0));
@@ -787,6 +813,7 @@ public class PCBManager {
 		if(execPCB.getRunTime() <= 0) {
 			
 			//若执行完毕，将当前进程状态设置为完成状态
+			execPCBFlag = new PCB(execPCB);
 			execPCB.setRunTime(0);
 			execPCB.setStatus(4);
 			execPCB.getMemory().free();
@@ -802,6 +829,8 @@ public class PCBManager {
 			//并将其添加回队列中
 			PCB pcb = new PCB(execPCB);
 			addAdjust(pcb);
+			execPCB.getMemory().free();
+			execPCB = null;
 		}
 		
 	}
@@ -820,6 +849,7 @@ public class PCBManager {
 			if(execPCB.getRunTime() <= 0) {
 				
 				//若执行完毕，将当前进程状态设置为完成状态
+				execPCBFlag = new PCB(execPCB);
 				execPCB.setRunTime(0);
 				execPCB.setStatus(4);
 				execPCB.getMemory().free();
@@ -866,6 +896,7 @@ public class PCBManager {
 		if(execPCB.getRunTime() <= 0) {
 			
 			//若执行完毕，将当前进程状态设置为完成状态
+			execPCBFlag = new PCB(execPCB);
 			execPCB.setRunTime(0);
 			execPCB.setStatus(4);
 			execPCB.getMemory().free();
@@ -924,6 +955,7 @@ public class PCBManager {
 		if(execPCB.getRunTime() <= 0) {
 			
 			//若执行完毕，将当前进程状态设置为完成状态
+			execPCBFlag = new PCB(execPCB);
 			execPCB.setRunTime(0);
 			execPCB.setStatus(4);
 			execPCB.getMemory().free();
