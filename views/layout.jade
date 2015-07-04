@@ -20,7 +20,9 @@ html
     link(rel="import" href="/paper-icon-button/paper-icon-button.html")
     link(rel="import" href="/iron-iconset/iron-iconset.html")
     link(rel="import" href="/iron-icons/iron-icons.html")
+    link(rel="import" href="/paper-input/paper-textarea.html")
     link(rel="import" href="/paper-input/paper-input.html")
+    link(rel="import" href="/paper-dialog/paper-dialog.html")
     link(rel="import" href="/paper-slider/paper-slider.html")
     
     script(type="text/javascript" src="/chartjs/Chart.min.js")
@@ -47,7 +49,7 @@ html
       }
       
       .input-box {
-        width: 48%;
+        width: 23%;
         padding: 0 1%;
         float: left;
       }
@@ -202,7 +204,7 @@ html
         
         // update pcb table
         pcbTable.html("");
-        data.pcbs.ready.forEach(function(val) {
+        data.pcbs.total.forEach(function(val) {
           pcbTable.append(createTr(val));
         });
       });
@@ -231,16 +233,25 @@ html
       $('#enter-desktop').on('click', function() {
         $('paper-drawer-panel').hide();
         $('#desktop').show();
+        
+        $('#login').show();
       });
       
+      $('#pcbTable').on('.operation', 'click', function() {
+        var label = $(this).attr('label');
+        socket.emit('pcb operation ' + label, $(this).parents('tr').attr('pid'));
+      });
       
       function createTr(pcb) {
         var tr = $('<tr></tr>');
+        tr.attr('pid', pcb.id);
         tr.append($('<td>' + pcb.name + '</td>'));
         tr.append($('<td>' + pcb.cpuTime + '</td>'));
         tr.append($('<td>' + pcb.memorySize + '</td>'));
         tr.append($('<td>' + pcb.level + '</td>'));
-        tr.append($('<td>' + pcb.user + '</td>'))
+        tr.append($('<td>' + pcb.user + '</td>'));
+        tr.append($('<td>' + pcb.status + '</td>'));
+        tr.append($('<td><paper-button class="operation" label="stop"></paper-button><paper-button class="operation" label="wait"></paper-button><paper-button class="operation" label="restart"></paper-button></td>'));
         return tr;
       }
     
