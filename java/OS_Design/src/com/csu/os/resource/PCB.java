@@ -107,11 +107,9 @@ public class PCB implements Serializable {
 		this.waitTime = 0;
 	}
 
-
 	public String getUser() {
 		return user;
 	}
-
 
 	public UUID getpId() {
 		return pId;
