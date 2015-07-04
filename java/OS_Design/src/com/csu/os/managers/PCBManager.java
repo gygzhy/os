@@ -503,6 +503,8 @@ public class PCBManager {
 				
 				//如果相等，则将该进程从初始化队列中删除
 				initPCBList.get(i).getMemory().free();
+				initPCBList.get(i).setStatus(4);
+				finishPCBList.add(initPCBList.get(i));
 				initPCBList.remove(i);
 				return true;
 			}
@@ -516,6 +518,8 @@ public class PCBManager {
 				
 				//如果相等，则将该进程就绪队列中删除
 				readyPCBList.get(i).getMemory().free();
+				readyPCBList.get(i).setStatus(4);
+				finishPCBList.add(readyPCBList.get(i));
 				readyPCBList.remove(i);
 				checkAdjust();
 				return true;
@@ -530,6 +534,8 @@ public class PCBManager {
 				
 				//如果相等，则将该进程等待队列中删除
 				waitPCBList.get(i).getMemory().free();
+				waitPCBList.get(i).setStatus(4);
+				finishPCBList.add(waitPCBList.get(i));
 				waitPCBList.remove(i);
 				return true;
 			}
@@ -539,24 +545,25 @@ public class PCBManager {
 		if(pId.toString().equals(execPCB.getpId().toString())) {
 			
 			//如果是，则将该进程删除
-			execPCBFlag = execPCB;
 			execPCB.getMemory().free();
+			execPCB.setStatus(4);
+			finishPCBList.add(execPCB);
 			execPCB = null;
 			return true;
 		}
 		
-		//遍历总进程队列，从中寻找对应要删除的进程
-		for(int i=0; i<totalPCBList.size(); i++) {
-			
-			//判断进程id是否相等
-			if(pId.toString().equals(totalPCBList.get(i).getpId().toString())) {
-				
-				//如果相等，则将该进程从总进程队列中删除
-				totalPCBList.get(i).getMemory().free();
-				totalPCBList.remove(i);
-				return true;
-			}
-		}
+//		//遍历总进程队列，从中寻找对应要删除的进程
+//		for(int i=0; i<totalPCBList.size(); i++) {
+//			
+//			//判断进程id是否相等
+//			if(pId.toString().equals(totalPCBList.get(i).getpId().toString())) {
+//				
+//				//如果相等，则将该进程从总进程队列中删除
+//				totalPCBList.get(i).getMemory().free();
+//				totalPCBList.remove(i);
+//				return true;
+//			}
+//		}
 		
 		return false;
 		
@@ -587,6 +594,7 @@ public class PCBManager {
 			} else {
 				
 				//若没有执行完，则先将当前执行进程放回就绪队列，后再竞争资源
+				execPCB.setStatus(1);
 				readyPCBList.add(index, execPCB);
 			}
 		}
