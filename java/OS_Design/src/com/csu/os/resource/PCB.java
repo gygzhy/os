@@ -1,15 +1,16 @@
 package com.csu.os.resource;
 
 import java.io.Serializable;
-import java.util.Comparator;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import com.csu.os.tools.Tools;
 
 /**
- * PCB��
+ * PCB进程类
  * @author GYGZHY
- * @date   2015��7��3��
+ * @date   2015年7月3日
  */
 public class PCB implements Serializable {
 	
@@ -27,6 +28,8 @@ public class PCB implements Serializable {
 	private int level;//优先级
 	private Memory memory;//内存
 	private String user; // 用户的名字
+	private Message sendMessage = null;//进程要发送的消息
+	private List<Message> receiveMessageList = new ArrayList<Message>();//进程接收到的消息队列
 	
 	/**
 	 * 无参构造方法
@@ -67,7 +70,7 @@ public class PCB implements Serializable {
 	}
 	
 	/**
-	 * ���ι��췽��
+	 * 带参构造方法
 	 * @param pId
 	 * @param uId
 	 * @param status
@@ -184,6 +187,20 @@ public class PCB implements Serializable {
 		this.waitTime = waitTime;
 	}
 
+	public Message getSendMessage() {
+		return sendMessage;
+	}
+
+	public void setSendMessage(Message sendMessage) {
+		this.sendMessage = sendMessage;
+	}
+
+
+	public List<Message> getReceiveMessageList() {
+		return receiveMessageList;
+	}
+
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -216,5 +233,29 @@ public class PCB implements Serializable {
 				+ ", memory=" + memory + "]";
 	}
 	
+	
+	/**
+	 * 进程产生消息方法(消息随机产生)
+	 * @param gId 	目标进程id
+	 * @param mType	消息类型
+	 */
+	public void productMessage(UUID gId, int mType) {
+		
+		Message message = new Message(pId, gId, mType);
+		sendMessage = message;
+	}
+	
+	
+	/**
+	 * 进程产生消息方法(消息数据为手动写入)
+	 * @param gId	目标进程id
+	 * @param mType	消息类型
+	 * @param data	消息数据
+	 */
+	public void productMessage(UUID gId, int mType, String data) {
+		
+		Message message = new Message(pId, gId, mType, data);
+		sendMessage = message;
+	}
 	
 }

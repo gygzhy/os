@@ -1,5 +1,9 @@
 package com.csu.os.managers;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.csu.os.resource.Message;
 import com.csu.os.tools.Parameter;
 
 /**
@@ -10,6 +14,7 @@ import com.csu.os.tools.Parameter;
 public class CPUManager {
 
 	private PCBManager  pcbManager;
+	private MessagesManager messagesManager;
 	private Thread thread;
 	private int flag = 0;
 	
@@ -19,7 +24,7 @@ public class CPUManager {
 	public CPUManager() {
 		
 		pcbManager = new PCBManager();
-		
+		messagesManager = new MessagesManager();
 	}
 	
 	public void start() {
