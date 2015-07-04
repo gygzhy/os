@@ -53,6 +53,7 @@ function initIo(io) {
 
     socket.on('change cpu interval', function(data) {
       console.log(`interval change to ${data}`);
+      var data = data - (data % 1000);
       interval = data;
       Parameter.SLEEP_TIME = data;
     });
@@ -144,11 +145,11 @@ function initIo(io) {
     });
 
     socket.on('pcb operation restart', function(data) {
-      pcbManager.restartPCBSync(data);
+      pcbManager.activatePCBSync(data);
     });
 
     socket.on('pcb operation wait', function(data) {
-      pcbManager.waitPCBSync(data);
+      pcbManager.hangPCBSync(data);
     });
 
   });

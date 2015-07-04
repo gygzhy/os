@@ -299,16 +299,11 @@ public class PCBManager {
 		
 	}
 	
-	public PCB addPCB(String name, String user, int memory, int level, int cputime) {
+	public PCB addPCB(String name, String user, int memory, int level, int cputime) throws Exception {
 		
 		//新建一个PCB实例 
 		PCB pcb = null;
-		try {
-			pcb = new PCB(user, name, cputime, level, memory);
-		} catch (Exception e) {
-			System.out.println(e.getMessage());
-			return null;
-		}
+		pcb = new PCB(user, name, cputime, level, memory);
 		
 		//判断就绪队列是否已满
 		if(readyPCBList.size() == Parameter.MAX_READY_NUMBER) {
