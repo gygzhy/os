@@ -599,6 +599,7 @@ public class PCBManager {
 			} else {
 				
 				//若没有执行完，则先将当前执行进程放回就绪队列，后再竞争资源
+				execPCB.setStatus(1);
 				readyPCBList.add(index, execPCB);
 			}
 		}

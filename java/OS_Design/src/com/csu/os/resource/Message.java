@@ -22,7 +22,7 @@ public class Message {
 		return mId;
 	}
 	public void setmId(UUID mId) {
-		mId = mId;
+		this.mId = mId;
 	}
 	public UUID getsId() {
 		return sId;
@@ -159,5 +159,15 @@ public class Message {
 	}
 	
 	
+	/**
+	 * 输出所有接收到的信息方法
+	 * @return 所有接收到的消息数据连接而成的字符串
+	 */
+	public String outputMessage() {
+		
+		String allData = "";
+		
+		return allData;
+	}
 	
 }
