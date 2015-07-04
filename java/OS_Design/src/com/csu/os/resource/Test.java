@@ -15,9 +15,10 @@ public class Test extends TestCase {
 		
 		CPUManager cpuManager = new CPUManager();
 		cpuManager.getPcbManager().setArithmeticStatus(4);
-//		for(int i=0; i<0; i++) {
-//			cpuManager.getPcbManager().addPCB();
-//		}
+		for(int i=0; i<10; i++) {
+			cpuManager.getPcbManager().addPCB();
+		}
+		
 		cpuManager.start();
 
 	}

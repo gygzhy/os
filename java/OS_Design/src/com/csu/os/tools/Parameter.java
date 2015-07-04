@@ -11,5 +11,6 @@ public class Parameter {
 	public static int SLEEP_TIME = 1000; //时间片产生频率
 	public static int MAX_READY_NUMBER = 100;//就绪队列所允许的最大进程数
 	public static int LEVEL_CHANGE = 1;//动态优先级算法中，优先级改变的大小
+	public static int MAX_MESSAGE_NUMBER = 200;//消息管理器中消息队列所允许的最大消息数
 	
 }

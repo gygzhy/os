@@ -1,5 +1,9 @@
 package com.csu.os.managers;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.csu.os.resource.Message;
 import com.csu.os.tools.Parameter;
 
 /**
@@ -10,6 +14,7 @@ import com.csu.os.tools.Parameter;
 public class CPUManager {
 
 	private PCBManager  pcbManager;
+	private MessagesManager messagesManager;
 	private Thread thread;
 	private int flag = 0;
 	
@@ -19,7 +24,7 @@ public class CPUManager {
 	public CPUManager() {
 		
 		pcbManager = new PCBManager();
-		
+		messagesManager = new MessagesManager();
 	}
 	
 	public void start() {
@@ -37,11 +42,15 @@ public class CPUManager {
 					//pcbManager.updateTotalPCBList();
 					System.out.println(pcbManager.getExecPCB());
 					System.out.println("size:"+pcbManager.getTotalPCBList().size());
-//					for(int i=0; i<10; i++) {
-//						System.out.println(pcbManager.getTotalPCBList().get(i));
-//					}
+					for(int i=0; i<pcbManager.getTotalPCBList().size(); i++) {
+						System.out.println(pcbManager.getTotalPCBList().get(i)+
+								"====="+pcbManager.getTotalPCBList().get(i).getReceiveMessageList());
+					}
 					System.out.println(pcbManager.getInitPCBList().size()+"----"+pcbManager.getReadyPCBList().size()+"----"+
 							pcbManager.getWaitPCBList().size()+"----"+pcbManager.getFinishPCBList().size());
+					
+					messagesManager.receiveMessage(pcbManager);
+					messagesManager.sendMessage(pcbManager);
 					
 					switch(pcbManager.getArithmeticStatus()) {
 					//ִ�������ȷ�������㷨
