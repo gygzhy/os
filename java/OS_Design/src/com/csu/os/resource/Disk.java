@@ -30,8 +30,10 @@ public class Disk {
 	protected DiskSection allocateSection(FCB fcb) {
 		for (DiskSection diskSection : storage) {
 			if (diskSection.isIdle) {
+				diskSection.data.clear();
 				diskSection.isIdle = false;
 				diskSection.fcb = fcb;
+				diskSection.next = null;
 				return diskSection;
 			}
 		}
@@ -72,10 +74,13 @@ public class Disk {
 			this.data = data;
 		}
 		
-		public void free() {
+		public DiskSection free() {
 			isIdle = true;
 			data.clear();
 			fcb = null;
+			DiskSection temp = next;
+			next = null;
+			return temp;
 		}
 		
 		public FCB getFcb() {

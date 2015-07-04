@@ -52,8 +52,7 @@ public class FCB {
 		Disk.DiskSection cur = head;
 		while (cur != null) {
 			// set the section to be idle so it's writable
-			cur.free();
-			cur = cur.next;
+			cur = cur.free();
 		}
 		
 		head = null;
@@ -74,12 +73,14 @@ public class FCB {
 		int sectionNumToReplace = (int) Math.ceil((double)data.size() / (double)disk.sectionSize);
 		Disk.DiskSection cur = head;
 		for(int i =0; i < sectionNumToReplace; i ++) {
-			
 			if (cur == null) {
 				cur = disk.allocateSection(this);
+				cur.data.clear();
 				for(int j = 0; j < disk.sectionSize && j < (data.size() - i * disk.sectionSize); j ++ ) {
 					cur.data.add(data.get(i* disk.sectionSize + j)) ;
 				}
+				
+				tail.next = cur;
 			} else {
 				cur.data.clear();
 				for(int j = 0; j < disk.sectionSize && j < (data.size() - i * disk.sectionSize); j ++ ) {
@@ -90,10 +91,9 @@ public class FCB {
 			cur = cur.next;
 		}
 		
-		
+		cur = tail.next;
 		while (cur != null) {
-			cur.free();
-			cur = cur.next;
+			cur = cur.free();
 		}
 		tail.next = null;
 	}

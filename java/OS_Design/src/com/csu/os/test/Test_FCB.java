@@ -37,10 +37,11 @@ public class Test_FCB {
 		FCB fcb = new FCB(disk);
 		
 		assertEquals(0, fcb.getSize());
-		fcb.append("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-		assertThat(32, equalTo(fcb.getSize()));
-		assertEquals("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", fcb.readString());
-		assertThat(disk.sectionNum - 1, equalTo(disk.getIdleSectionNum()));
+		String test = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+		fcb.replace(test);
+		assertThat(test.length(), equalTo(fcb.getSize()));
+		assertEquals(test, fcb.readString());
+		assertThat(disk.sectionNum - (int) Math.ceil(test.length() / disk.sectionSize), equalTo(disk.getIdleSectionNum()));
 	}
 	
 	@Test

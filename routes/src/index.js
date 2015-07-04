@@ -53,7 +53,7 @@ function initIo(io) {
 
     socket.on('change cpu interval', function(data) {
       console.log(`interval change to ${data}`);
-      //interval = data;
+      interval = data;
       Parameter.SLEEP_TIME = data;
     });
 
@@ -100,8 +100,7 @@ function initIo(io) {
       fcb.setNameSync(data.name);
       fcb.replaceSync(data.content);
 
-      console.log(data);
-
+      console.log(fcb.getIdStringSync());
       socket.emit('new fcb', {
         id: fcb.getIdStringSync(),
         name: fcb.getNameSync(),
@@ -128,7 +127,10 @@ function initIo(io) {
     socket.on('read fcb', function(data) {
       var fcb = getFcb(data);
 
-      socket.emit('read fcb', fcb.readStringSync());
+      socket.emit('read fcb', {
+        id: fcb.getIdSync(),
+        content: fcb.readStringSync()
+      });
     });
 
     socket.on('read fcb', function(data) {
@@ -138,7 +140,15 @@ function initIo(io) {
     });
 
     socket.on('pcb operation stop', function(data) {
-      pcbManager.deletePCBSync();
+      pcbManager.deletePCBSync(data);
+    });
+
+    socket.on('pcb operation restart', function(data) {
+      pcbManager.restartPCBSync(data);
+    });
+
+    socket.on('pcb operation wait', function(data) {
+      pcbManager.waitPCBSync(data);
     });
 
   });
@@ -245,7 +255,7 @@ function getHardDiskInfo(data) {
     var section = storage.getSync(i);
     data.disk.diskSections.push({
       isIdle: section.isIdleSync(),
-      fcb: (fcb = section.getFcbSync()) ? fcb.getIdString() : null
+      fcb: (fcb = section.getFcbSync()) ? fcb.getIdStringSync() : null
     });
   }
 

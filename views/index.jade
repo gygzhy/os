@@ -235,8 +235,9 @@ block hard-disk
       for (var i =0 ;i < disk.sectionNum; i ++) {
         var sec = $('<div></div>');
         sec.addClass('disk-section');
-        if (!disk.diskSections[i].isIdle) 
+        if (!disk.diskSections[i].isIdle) {
           sec.css('background', uuidToHex(disk.diskSections[i].fcb));
+        }
         $('#disk-section-container').append(sec);
       }
     });
@@ -286,7 +287,16 @@ block desktop
     }
     
     #editor-container {
+      position: absolute;
+      width: 700px;
+      height: 400px;
       display: none;
+      left: 50%;
+      top: 50%;
+      margin-left: -350px;
+      margin-top: -200px;
+      background: #fafafa;
+      z-index: 200;
     }
   div#desktop
     paper-material#login
@@ -300,8 +310,11 @@ block desktop
         paper-item#new-folder new folder
         paper-item#new-process new process
         paper-item#exit-desktop exit
-    paper-dialog#editor-container
+    paper-material#editor-container
+      paper-toolbar
+        paper-button#editor-close close
       paper-textarea#editor
+      paper-button#editor-edit edit
       
   script.
     // TODO: desktop
@@ -313,14 +326,18 @@ block desktop
       $('#desktop').height(window.screen.availHeight);
     });
     
+    var position = {};
+    
     $('#desktop').on('contextmenu', function(e) {
       if (user === 'admin') {
           return;
       }
       e.preventDefault();
       
-      console.log(e);
-      
+      position = {
+        x: e.clientX,
+        y: e.clientY
+      }
       $('#right-menu').css({
         top: e.clientY,
         left: e.clientX
@@ -330,7 +347,7 @@ block desktop
     function createFile(name, id) {
       var file = $('<div></div>');
       file.addClass('desktop-file');
-      file.attr('name', name).attr('id', id);
+      file.attr('name', name).attr('fid', id);
       file.html('<p>' + name + '</p>');
       return file;
     }
@@ -338,19 +355,26 @@ block desktop
       var file =createFile(data.name, data.id);
       $('#desktop').append(file);
       file.css({
-        left: $('#desktop').attr('posx'),
-        top: $('#desktop').attr('posy')
-      })
+        left: position.x,
+        top: position.y
+      });
     });
     
     socket.on('read fcb', function(data) {
       $('#editor-container').show();
-      $('#editor')[0].value = data;
+      $('#editor')[0].value = data.content;
+      $('#editor').attr('pid', data.id);
     });
     
-    $("#desktop").mousemove(function(e) {
-      $("#desktop").attr('posx', e.clientX);
-      $("#desktop").attr('posy',e.clientY);
+    $('#editor-close').on('click', function() {
+      $('#editor-container').hide();
+    });
+    
+    $('#editor-edit').on('click',function() {
+      socket.emit('edit fcb', {
+        id: $('#editor').attr('pid'),
+        content: $('#editor').val()
+      });
     });
     
     $('#desktop').on('click', function(e) {
@@ -358,12 +382,15 @@ block desktop
       $('#right-menu').hide();
     });
     
-    $('.desktop-file').on('click', function() {
-      socket.emit('read fcb');
+    $('#desktop').on('click', '.desktop-file', function() {
+      socket.emit('read fcb', $(this).attr('fid'));
     });
     
     $('#new-file').on('click', function() {
-      socket.emit('new fcb');
+      socket.emit('new fcb', {
+        name: 'new file',
+        content: ''
+      });
     });
     $('#new-folder').on('click', function() {
       

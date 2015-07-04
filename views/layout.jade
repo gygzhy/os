@@ -167,7 +167,7 @@ html
       })();
       
       socket.on('heart beat', function(data) {
-        console.log('heart beat');
+        //- console.log('heart beat');
         
         var memory = data.memory;
         // update line chart
@@ -237,7 +237,7 @@ html
         $('#login').show();
       });
       
-      $('#pcbTable').on('.operation', 'click', function() {
+      $('#pcbTable').on( 'click', '.operation',function() {
         var label = $(this).attr('label');
         socket.emit('pcb operation ' + label, $(this).parents('tr').attr('pid'));
       });
@@ -251,7 +251,7 @@ html
         tr.append($('<td>' + pcb.level + '</td>'));
         tr.append($('<td>' + pcb.user + '</td>'));
         tr.append($('<td>' + pcb.status + '</td>'));
-        tr.append($('<td><paper-button class="operation" label="stop"></paper-button><paper-button class="operation" label="wait"></paper-button><paper-button class="operation" label="restart"></paper-button></td>'));
+        tr.append($('<td><paper-button class="operation" label="stop">stop</paper-button><paper-button class="operation" label="wait">wait</paper-button><paper-button class="operation" label="restart">restart</paper-button></td>'));
         return tr;
       }
     
