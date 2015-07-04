@@ -14,6 +14,10 @@ const Memory = java.import('com.csu.os.resource.Memory');
 const cpu = new java.import('com.csu.os.managers.CPUManager')();
 const pcbManager = cpu.getPcbManagerSync();
 const Parameter = java.import('com.csu.os.tools.Parameter');
+const Disk = java.import('com.csu.os.resource.Disk');
+const FCB = java.import('com.csu.os.resource.FCB');
+
+var disk = new Disk(2048, 32);
 
 cpu.start();
 // counting the time
@@ -55,12 +59,16 @@ function initIo(io) {
 
     socket.on('add a process', function(data) {
       console.log('a process is about to be created');
+      var pcb = null
       try {
-        pcbManager.addPCBSync(data.name, data.user, parseInt(data.memory), parseInt(data.level)
+        pcb = pcbManager.addPCBSync(data.name, data.user, parseInt(data.memory), parseInt(data.level)
           , parseInt(data.time));
       } catch(e) {
         console.log("adding pcb fail" + e);
+        return;
       }
+
+      socket.emit('add a process', createPcb(pcb));
 
     });
 
@@ -79,8 +87,69 @@ function initIo(io) {
 
     socket.on('user login',function(data) {
       console.log(`user ${data} login`);
-    })
+    });
+
+    socket.on('user logout', function(data) {
+
+    });
+
+    socket.on('new fcb', function(data) {
+      var fcb = new FCB(disk);
+      fcbs.push(fcb);
+
+      fcb.setNameSync(data.name);
+      fcb.replaceSync(data.content);
+
+      console.log(data);
+
+      socket.emit('new fcb', {
+        id: fcb.getIdStringSync(),
+        name: fcb.getNameSync(),
+        size: fcb.getSizeSync()
+      });
+    });
+
+    socket.on('edit fcb', function(data) {
+      var fcb = getFcb(data.id);
+      fcb.replaceSync(data.content);
+    });
+
+    socket.on('rename fcb', function(data) {
+      var fcb = getFcb(data.id);
+      fcb.setNameSync(data.name);
+    });
+
+    socket.on('delete fcb', function(data) {
+      var fcb = getFcb(data);
+      fcb.deleteSync();
+      fcbs.splice(fcbs.indexOf(fcb), 1);
+    });
+
+    socket.on('read fcb', function(data) {
+      var fcb = getFcb(data);
+
+      socket.emit('read fcb', fcb.readStringSync());
+    });
+
+    socket.on('read fcb', function(data) {
+      var fcb = getFcb(data);
+
+      socket.emit('read fcb', fcb.readStringSync());
+    });
+
+    socket.on('pcb operation stop', function(data) {
+      pcbManager.deletePCBSync();
+    });
+
   });
+
+  function getFcb(id) {
+    for(var i =0 ; i <fcbs.length; i++) {
+      if (id == fcbs[i].getIdSync()) {
+        return fcbs[i];
+      }
+    }
+  }
 
   var timer = function() {
     var data = {};
@@ -90,11 +159,12 @@ function initIo(io) {
     getPcbInfo(data);
     // get the memory informatino from java
     getMemoryInfo(data);
+
+    getHardDiskInfo(data);
     // increase counting
     seconds += interval / 1000;
 
     io.emit('heart beat', data);
-    log('heart beat');
 
     setTimeout(timer, interval);
   };
@@ -104,34 +174,39 @@ function initIo(io) {
   ioInitialized = true;
 }
 
+var fcbs = [];
+
 function getPcbInfo(data) {
   data.pcbs = {
+    mode: pcbManager.getArithmeticStatusSync(),
     init: pcbArray(pcbManager.getInitPCBListSync()),
     ready: pcbArray(pcbManager.getReadyPCBListSync()),
     wait: pcbArray(pcbManager.getWaitPCBListSync()),
     finish: pcbArray(pcbManager.getFinishPCBListSync()),
     total: pcbArray(pcbManager.getTotalPCBListSync())
-  }
+  };
+}
 
-  function pcbArray(pcbList) {
-    var ret = [];
-    for(var i = 0; i < pcbList.sizeSync(); i++) {
-      let pcb = pcbList.getSync(i);
-      let pid = pcb.getpIdStringSync();
-      let uid = pcb.getuIdStringSync();
-      ret.push({
-        id: pid,
-        uid: uid,
-        name: pcb.getNameSync(),
-        cpuTime: pcb.getRunTimeSync(),
-        memorySize: pcb.getMemorySync().getSizeSync(),
-        level: pcb.getLevelSync(),
-        status: pcb.getStatusSync(),
-        user: pcb.getUserSync()
-      });
-    }
-    return ret;
+function pcbArray(pcbList) {
+  var ret = [];
+  for(var i = 0; i < pcbList.sizeSync(); i++) {
+    ret.push(createPcb(pcbList.getSync(i)));
   }
+  return ret;
+}
+
+function createPcb(data) {
+  let pcb = data;
+  let pid = pcb.getpIdStringSync();
+  return {
+    id: pid,
+    name: pcb.getNameSync(),
+    cpuTime: pcb.getRunTimeSync(),
+    memorySize: pcb.getMemorySync().getSizeSync(),
+    level: pcb.getLevelSync(),
+    status: pcb.getStatusSync(),
+    user: pcb.getUserSync()
+  };
 }
 
 function getMemoryInfo(data) {
@@ -155,6 +230,26 @@ function getMemoryInfo(data) {
     });
     cur = cur.getNextSync();
   }
+}
+
+function getHardDiskInfo(data) {
+
+  data.disk = {
+    sectionNum: disk.sectionNum,
+    sectionSize: disk.sectionSize
+  }
+
+  data.disk.diskSections = [];
+  var storage = disk.getStorageSync(), fcb;
+  for(var i = 0; i < storage.sizeSync(); i++) {
+    var section = storage.getSync(i);
+    data.disk.diskSections.push({
+      isIdle: section.isIdleSync(),
+      fcb: (fcb = section.getFcbSync()) ? fcb.getIdString() : null
+    });
+  }
+
+
 }
 
 process.on('exit', function(code) {

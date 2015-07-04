@@ -39,7 +39,163 @@ block cpu
           paper-input(label="time")
         div.input-box
           paper-input(label="level")
-        paper-button(raised style="background:#99ee44")#update Add
+        div.input-box(style="float: right")
+          paper-button(raised style="background:#99ee44")#update Add
+    div#play-ground
+      style.
+        #play-ground {
+          width: 100%;
+          height: 450px;
+          overflow: hidden;
+          margin: 0 auto;
+          position: relative;
+        }
+        
+        .play-circle {
+          width: 10px;
+          height: 10px;
+          border-radius: 10px;
+          background: red;
+          position: absolute;
+          left: 0; 
+          top: 0;
+          text-align: center;
+          line-height: 10px;
+          opacity: .6;
+          
+          transition: all 300ms 0ms ease-in;
+        }
+      script.
+        
+        socket.on('add a process', function(data) {
+          var circle = createCircle(data);
+          moveTo(circle, 0);
+        });
+        
+        socket.on('heart beat', function(data) {
+          var pcbs = data.pcbs.total;
+          [].forEach.call(pcbs, function(val) {
+            var circle = findCircle(val.id);
+            if (!circle) {
+              moveTo(createCircle(val), val.status);
+            } else {
+              if (circle.status === val.status) {
+                return;
+              }
+              moveTo(circle, val.status);
+            }
+          });
+        });
+        
+        var ready = [], init = [], finish = [], wait = [];
+        var executing = null;
+        var playground = $('#play-ground');
+        var playgroundXHalf = playground.width() / 2;
+        var playgroundYHalf = playground.height() / 2;
+        
+        var largestSize = 0;
+        
+        function moveTo(circle, queue) {
+          var from = circle.queue;
+          if (from) {
+            from.splice(from.indexOf(circle), 1);
+          } else {
+            playground.append(circle.element);
+          }
+          switch(queue) {
+            case 1:
+              ready.push(circle);
+              translate(circle, {x: Math.random() * playgroundXHalf,
+                y: Math.random() * playgroundYHalf});
+              circle.from = ready;
+              circle.status = 1;
+              break;
+            case 0:
+              init.push(circle);
+              translate(circle, {x: (1.2 +Math.random()) * playgroundXHalf,
+                y: Math.random() * playgroundYHalf});
+              circle.from = init;
+              circle.status = 0;
+              break;
+            case 4:
+              finish.push(circle);
+              translate(circle, {x: (1.2 +Math.random()) * playgroundXHalf,
+                y: (1.2 +Math.random()) * playgroundYHalf});
+              resize(circle, 10);
+              circle.element.css('background', '#aaa');
+              circle.from = finish;
+              circle.status = 4;
+              break;
+            case 3:
+              translate(circle, {x: (Math.random()) * playgroundXHalf,
+                y: (1.2 +Math.random()) * playgroundYHalf});
+              wait.push(circle);
+              circle.from = wait;
+              circle.status = 3;
+              break;
+          }
+        }
+        
+        function translate(circle, to) {
+          circle.element.css({
+            transform: 'translate(' + to.x + 'px,' + to.y + 'px' + ')'
+          });
+        }
+        
+        function resize(circle, size) {
+          largestSize = Math.max(largestSize, size);
+          
+          circle.element.css({
+            width: size,
+            height: size,
+            borderRadius: size,
+            transform: 'translate(' + circle.x + (size - circle.size)/2 + 'px, ' +
+              circle.y + (size - circle.size)/2 + 'px' + ')'
+          });
+          
+        }
+        
+        function findCircle(id) {
+          if(executing && executing.id === id) {
+            return executing;
+          }
+          
+          for(var i = 0 ; i< ready.length; i++) {
+            if (ready[i].id == id)
+              return ready[i];
+          }
+          
+          for(var i = 0 ; i< init.length; i++) {
+            if (init[i].id == id)
+              return init[i];
+          }
+          
+          for(var i = 0 ; i< finish.length; i++) {
+            if (finish[i].id == id)
+              return finish[i];
+          }
+          
+          for(var i = 0 ; i< wait.length; i++) {
+            if (wait[i].id == id)
+              return wait[i];
+          }
+          return null;
+        }
+        
+        function createCircle(data) {
+          var circle = {};
+          circle.data = data;
+          circle.name = data.name;
+          circle.id = data.id;
+          circle.level = data.level;
+          circle.runtime = data.runtime;
+          circle.x = 0; circle.y = 0;
+          circle.status = data.status;
+          circle.element = $('<div class="play-circle">'+ circle.name +'</div>');
+          
+          resize(circle, circle.runtime);
+          return circle;
+        }
     h3 Cpu Status
     table
       thead
@@ -49,22 +205,88 @@ block cpu
           th memory size
           th level
           th user
+          th status
       tbody#pcbTable
     
 block hard-disk
+  style.
+    #disk-section-container {
+      width: 100%;
+      height: 300px;
+    }
+    .disk-section {
+      width: 8px;
+      height: 8px;
+      margin: 1px;
+      background: #ccc;
+      float: left;
+    }
   paper-material(elevation=2).main
     h1 hard disk
-    h3 Hard Disk
+    h3 Hard Disk Block
+    paper-input(label="name")#fcb-name
+    paper-textarea#fcb-content
+    paper-button(raised)#add-fcb add
+    div#disk-section-container
+  script.
+    socket.on('heart beat', function(data) {
+      var disk = data.disk;
+      $('#disk-section-container').html('');
+      for (var i =0 ;i < disk.sectionNum; i ++) {
+        var sec = $('<div></div>');
+        sec.addClass('disk-section');
+        if (!disk.diskSections[i].isIdle) 
+          sec.css('background', uuidToHex(disk.diskSections[i].fcb));
+        $('#disk-section-container').append(sec);
+      }
+    });
+    
+    $('#add-fcb').on('click', function() {
+      socket.emit('new fcb', {
+        name: $('#fcb-name')[0].label,
+        content: $('#textarea')[0].value
+      });
+    });
+    
+    socket.on('new fcb', function(data) {
+      console.log(data);
+    });
 
 block desktop
   style.
     #desktop {
-      display: none
+      display: none;
+      width: 100%;
+      position: relative;
     }
     #login {
       width: 400px;
       margin: 50px auto;
       padding: 50px 60px;
+    }
+    #right-menu {
+      width: 200px;
+      display: none;
+      position: absolute;
+    }
+    #right-menu paper-item {
+      cursor: pointer;
+    }
+    #right-menu paper-item:hover {
+      background: #eee;
+    }
+    .desktop-file {
+      width: 80px;
+      height: 100px;
+      padding-top: 80px;
+      position: absolute;
+    }
+    .desktop-file p {
+      text-align: center;
+    }
+    
+    #editor-container {
+      display: none;
     }
   div#desktop
     paper-material#login
@@ -77,20 +299,82 @@ block desktop
         paper-item#new-file new file
         paper-item#new-folder new folder
         paper-item#new-process new process
+        paper-item#exit-desktop exit
+    paper-dialog#editor-container
+      paper-textarea#editor
       
   script.
-    
+    // TODO: desktop
     var user = 'admin';
     $('#login-btn').on('click', function() {
       socket.emit('user login', $('#username').val());
       user = $('#username').val();
-      $(this).hide();
+      $('#login').hide();
+      $('#desktop').height(window.screen.availHeight);
     });
     
-    $('#desktop').on('click', function(e) {
+    $('#desktop').on('contextmenu', function(e) {
       if (user === 'admin') {
           return;
       }
+      e.preventDefault();
       
+      console.log(e);
       
+      $('#right-menu').css({
+        top: e.clientY,
+        left: e.clientX
+      }).show();
+    });
+    
+    function createFile(name, id) {
+      var file = $('<div></div>');
+      file.addClass('desktop-file');
+      file.attr('name', name).attr('id', id);
+      file.html('<p>' + name + '</p>');
+      return file;
+    }
+    socket.on('new fcb', function(data) {
+      var file =createFile(data.name, data.id);
+      $('#desktop').append(file);
+      file.css({
+        left: $('#desktop').attr('posx'),
+        top: $('#desktop').attr('posy')
+      })
+    });
+    
+    socket.on('read fcb', function(data) {
+      $('#editor-container').show();
+      $('#editor')[0].value = data;
+    });
+    
+    $("#desktop").mousemove(function(e) {
+      $("#desktop").attr('posx', e.clientX);
+      $("#desktop").attr('posy',e.clientY);
+    });
+    
+    $('#desktop').on('click', function(e) {
+      
+      $('#right-menu').hide();
+    });
+    
+    $('.desktop-file').on('click', function() {
+      socket.emit('read fcb');
+    });
+    
+    $('#new-file').on('click', function() {
+      socket.emit('new fcb');
+    });
+    $('#new-folder').on('click', function() {
+      
+    });
+    $('#new-process').on('click', function() {
+      
+    });
+    $('#exit-desktop').on('click', function() {
+      $('paper-drawer-panel').show();
+      $('#desktop').hide();
+      
+      socket.emit('user logout', user);
+      user = 'admin';
     });

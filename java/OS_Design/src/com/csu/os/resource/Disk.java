@@ -12,6 +12,12 @@ public class Disk {
 	
 	protected ArrayList<DiskSection> storage;
 	
+	
+	
+	public ArrayList<DiskSection> getStorage() {
+		return storage;
+	}
+
 	public Disk(int storageSize, int sectionSize) {
 		this.sectionNum = storageSize;
 		this.sectionSize = sectionSize;
@@ -66,6 +72,15 @@ public class Disk {
 			this.data = data;
 		}
 		
+		public void free() {
+			isIdle = true;
+			data.clear();
+			fcb = null;
+		}
+		
+		public FCB getFcb() {
+			return fcb;
+		}
 		public Disk getDisk() {
 			return disk;
 		}

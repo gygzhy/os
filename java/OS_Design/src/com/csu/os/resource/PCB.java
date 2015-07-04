@@ -25,6 +25,7 @@ public class PCB implements Serializable {
 	private int runTime;//需要执行的时间
 	private int waitTime;//等待时间
 	private int level;//优先级
+	private int size;
 	private Memory memory;//内存
 	private String user; // 用户的名字
 	
@@ -42,11 +43,17 @@ public class PCB implements Serializable {
 		timeRAM = Tools.getRandomInteger(0, 5);
 		runTime = timeRAM;
 		waitTime = 0;
+		size = Tools.getRandomInteger(1, 100);
 		level = Tools.getRandomInteger(0, 4);
-		memory = Memory.Allocate(Tools.getRandomInteger(1, 100), this);
+		memory = Memory.Allocate(size, this);
 	}
 	
 	
+	public int getSize() {
+		return size;
+	}
+
+
 	/**
 	 * 带参构造方法
 	 * @param pcb 要copy的pcb
@@ -63,6 +70,8 @@ public class PCB implements Serializable {
 		this.level = pcb.getLevel();
 		this.memory = pcb.getMemory();
 		this.runTime = pcb.getRunTime();
+		this.user = pcb.getUser();
+		this.size = pcb.getSize();
 		
 	}
 	
@@ -90,6 +99,7 @@ public class PCB implements Serializable {
 		this.waitTime = waitTime;
 		this.level = level;
 		this.memory = Memory.Allocate(size, this);
+		this.size = size;
 	}
 	
 	
@@ -102,6 +112,8 @@ public class PCB implements Serializable {
 		this.runTime = runTime;
 		this.level = level;
 		this.waitTime = 0;
+		this.pId = UUID.randomUUID();
+		this.size = memory;
 	}
 
 
@@ -209,12 +221,14 @@ public class PCB implements Serializable {
 		return true;
 	}
 
+
 	@Override
 	public String toString() {
-		return "PCB [pId=" + pId + ", uId=" + uId + ", name=" + name + ", status=" + status + ", timeCUP=" + timeCUP
-				+ ", timeRAM=" + timeRAM + ", runTime=" + runTime + ", waitTime=" + waitTime + ", level=" + level
-				+ ", memory=" + memory + "]";
+		return "PCB [pId=" + pId + ", name=" + name + ", status=" + status + ", runTime=" + runTime + ", level=" + level
+				+ ", memory=" + memory + ", user=" + user + "]";
 	}
+
+	
 	
 	
 }

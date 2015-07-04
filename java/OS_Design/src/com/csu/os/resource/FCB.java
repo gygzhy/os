@@ -16,6 +16,16 @@ public class FCB {
 	
 	private UUID id;
 	
+	private String name;
+	
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
 	public int getSize() {
 		int size = 0;
 		Disk.DiskSection cur = head;
@@ -31,6 +41,10 @@ public class FCB {
 		return id;
 	}
 	
+	public String getIdString() {
+		return id.toString();
+	}
+	
 	/**
 	 * delete a file
 	 */
@@ -38,8 +52,7 @@ public class FCB {
 		Disk.DiskSection cur = head;
 		while (cur != null) {
 			// set the section to be idle so it's writable
-			cur.isIdle = true;
-			cur.data.clear();
+			cur.free();
 			cur = cur.next;
 		}
 		
@@ -77,9 +90,9 @@ public class FCB {
 			cur = cur.next;
 		}
 		
+		
 		while (cur != null) {
-			cur.isIdle = true;
-			cur.data.clear();
+			cur.free();
 			cur = cur.next;
 		}
 		tail.next = null;
@@ -108,7 +121,9 @@ public class FCB {
 	public FCB(Disk disk) {
 		this.disk = disk;
 		head = tail = disk.allocateSection(this);
+		head.next = null;
 		id = UUID.randomUUID();
+		name = "new file";
 	}
 	
 	private ArrayList<Character> stringToArraylist(String str) {

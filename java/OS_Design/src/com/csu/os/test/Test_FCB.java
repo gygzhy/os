@@ -8,6 +8,7 @@ import com.csu.os.resource.FCB;
 import com.csu.os.resource.Memory;
 import com.csu.os.resource.Memory.mode;
 
+import junit.extensions.TestSetup;
 import junit.framework.TestCase;
 import static org.junit.Assert.assertThat;
 
@@ -40,6 +41,16 @@ public class Test_FCB {
 		assertThat(32, equalTo(fcb.getSize()));
 		assertEquals("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", fcb.readString());
 		assertThat(disk.sectionNum - 1, equalTo(disk.getIdleSectionNum()));
+	}
+	
+	@Test
+	public void replaceFCB() {
+		FCB fcb = new FCB(disk);
+		String test = "slkjf ealkfj alsdkfase lkj jkaef lkja selfa selkfja ef asd fasd";
+		fcb.replace(test);
+		assertEquals(disk.getIdleSectionNum(), disk.sectionNum - 2);
+		assertEquals(test.length(), fcb.getSize());
+		assertEquals(test, fcb.readString());
 	}
 	
 	@Test
