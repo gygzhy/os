@@ -1,9 +1,9 @@
 package com.csu.os.hardware;
 
 /**
- * CPUÀà
+ * CPUç±»
  * @author GYGZHY
- * @date   2015Äê7ÔÂ3ÈÕ
+ * @date   2015å¹´7æœˆ3æ—¥
  */
 public class CPU {
 

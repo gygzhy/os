@@ -14,7 +14,6 @@ import com.csu.os.tools.Tools;
  */
 public class PCB implements Serializable {
 	
-	
 	private static final long serialVersionUID = 1L;//默认序列化序号
 	private UUID pId;//进程ID
 	private UUID uId;//用户ID
@@ -268,6 +267,24 @@ public class PCB implements Serializable {
 		
 		Message message = new Message(pId, gId, mType, data);
 		sendMessage = message;
+	}
+	
+	
+	/**
+	 * 输出所有接收到的信息方法
+	 * @return 所有接收到的消息数据连接而成的字符串
+	 */
+	public String outputMessage() {
+		
+		String allData = "";
+		
+		//遍历接受信息队列，从中获取信息，并连接起来
+		for(Message message:receiveMessageList) {
+			
+			//连接信息字符串
+			allData = allData + message.getmData() + ",";
+		}
+		return allData;
 	}
 	
 }

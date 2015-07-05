@@ -39,8 +39,12 @@ public class CPUManager {
 					System.out.println(pcbManager.getExecPCB());
 					System.out.println("size:"+pcbManager.getTotalPCBList().size());
 					for(int i=0; i<pcbManager.getTotalPCBList().size(); i++) {
-						System.out.println(pcbManager.getTotalPCBList().get(i)+
-								"====="+pcbManager.getTotalPCBList().get(i).getReceiveMessageList());
+						System.out.println(pcbManager.getTotalPCBList().get(i));
+					}
+					for(int i=0; i<pcbManager.getTotalPCBList().size(); i++) {
+						for(int j=0; j<pcbManager.getTotalPCBList().get(i).getReceiveMessageList().size(); j++) {
+							System.out.println(pcbManager.getTotalPCBList().get(i).getReceiveMessageList().get(j));
+						}
 					}
 					System.out.println(pcbManager.getInitPCBList().size()+"----"+pcbManager.getReadyPCBList().size()+"----"+
 							pcbManager.getWaitPCBList().size()+"----"+pcbManager.getFinishPCBList().size());
@@ -49,37 +53,38 @@ public class CPUManager {
 					messagesManager.sendMessage(pcbManager);
 					
 					switch(pcbManager.getArithmeticStatus()) {
-					//ִ�������ȷ�������㷨
+					
+					//先来先服务调度算法
 					case 0:
 						pcbManager.fcfs();
 						break;
 						
-					//ִ����ת�����㷨
+					//轮转调度算法
 					case 1:
 						pcbManager.lz();
 						break;
 						
-					//ִ�ж༶������ת�����㷨
+					//多级反馈轮转调度算法
 					case 2:
-						pcbManager.dtyx();
+						pcbManager.djfklz();
 						break;
 						
-					//ִ�о�̬���ȼ������㷨
+					//静态优先调度算法
 					case 3:
 						pcbManager.jtyx();
 						break;
 						
-					//ִ�ж�̬���ȼ������㷨
+					//动态优先调度算法
 					case 4:
 						pcbManager.dtyx();
 						break;
 						
-					//ִ�������ҵ�����㷨
+					//最短作业调度算法
 					case 5:
 						pcbManager.zdzy();
 						break;
 						
-					//ִ�������Ӧ�����ȵ����㷨
+					//最高响应比调度算法
 					case 6:
 						pcbManager.zgxyb();
 						break;
