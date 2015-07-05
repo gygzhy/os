@@ -30,6 +30,7 @@ var Disk = _java2['default']['import']('com.csu.os.resource.Disk');
 var FCB = _java2['default']['import']('com.csu.os.resource.FCB');
 
 var disk = new Disk(2048, 32);
+var root = null;
 
 cpu.start();
 // counting the time
@@ -42,6 +43,9 @@ router.get('/', function (req, res, next) {
   res.render('index', { title: 'Memory fuck hey' });
 });
 
+// 用户列表
+var users = {};
+
 var ioInitialized = false;
 function initIo(io) {
   if (ioInitialized) return;
@@ -51,18 +55,21 @@ function initIo(io) {
   var interval = 1000;
 
   io.on('connection', function (socket) {
+
     log('a client connet through socket');
 
     socket.on('allocate memory', function (data) {
-      if (isFinit(data)) var mem = Memory.Allocate(data);
-      socket.emit('allocate memory', mem.getIdSync());
+      if (isFinit(data)) {
+        var mem = Memory.Allocate(data);
+        socket.emit('allocate memory', mem.getIdSync());
+      }
     });
 
     socket.on('change allocate mode', function (data) {});
 
     socket.on('change cpu interval', function (data) {
       console.log('interval change to ' + data);
-      var data = data - data % 1000;
+      data = data - data % 1000;
       interval = data;
       Parameter.SLEEP_TIME = data;
     });
@@ -92,58 +99,154 @@ function initIo(io) {
       pcbManager.setArithmeticStatusSync(parseInt(data));
     });
 
-    socket.on('user login', function (data) {
-      console.log('user ' + data + ' login');
+    // ------------------------------------------------------------------------
+    // user login logout
+    // ------------------------------------------------------------------------
+
+    // current user;
+    var user = null;
+
+    socket.on('add user', function (data) {
+      console.log('add user');
+      users[data.username] = {
+        isLogin: false
+      };
+
+      users[data.username].folder = root.createSubFolderSync();
+      users[data.username].folder.setNameSync(data.username);
     });
 
-    socket.on('user logout', function (data) {});
+    socket.on('delete user', function (data) {
+      var toDelete = users.splice(users.indexOf(data.username), 1);
+      toDelete.folder.deleteSync();
+    });
 
-    socket.on('new fcb', function (data) {
-      var fcb = new FCB(disk);
-      fcbs.push(fcb);
+    socket.on('user login', function (data) {
+      if (users[data.username]) {
+        user = users[data.username];
+        user.isLogin = true;
+        user.currentFolder = user.folder;
+        socket.emit('user login', {
+          username: data.username
+        });
+      } else {
+        socket.emit('user login', {
+          username: 'admin'
+        });
+      }
+    });
 
-      fcb.setNameSync(data.name);
-      fcb.replaceSync(data.content);
+    socket.on('user logout', function (data) {
+      if (user) {
+        user.isLogin = false;
+      }
+    });
 
-      console.log(fcb.getIdStringSync());
-      socket.emit('new fcb', {
+    // ------------------------------------------------------------------------
+    // disk
+    // ------------------------------------------------------------------------
+    socket.on('new fragment', function (data) {
+      var fragment = disk.addFragmentSync(parseInt(data.size), data.name);
+      root = new FCB(fragment, true);
+      root.setNameSync('root');
+      console.log(root.getNameSync());
+    });
+
+    // ------------------------------------------------------------------------
+    // file and folder
+    // ------------------------------------------------------------------------
+    socket.on('new file', function (data) {
+      var fcb = user.currentFolder.createSubFileSync();
+
+      socket.emit('new file', {
         id: fcb.getIdStringSync(),
         name: fcb.getNameSync(),
         size: fcb.getSizeSync()
       });
     });
 
-    socket.on('edit fcb', function (data) {
-      var fcb = getFcb(data.id);
+    socket.on('edit file', function (data) {
+      var fcb = user.currentFolder.getFcbByIdSync(data.id);
       fcb.replaceSync(data.content);
     });
 
-    socket.on('rename fcb', function (data) {
-      var fcb = getFcb(data.id);
-      fcb.setNameSync(data.name);
-    });
+    socket.on('read file', function (data) {
+      var fcb = user.currentFolder.getFcbByIdSync(data.id);
 
-    socket.on('delete fcb', function (data) {
-      var fcb = getFcb(data);
-      fcb.deleteSync();
-      fcbs.splice(fcbs.indexOf(fcb), 1);
-    });
+      console.log(fcb.getNameSync());
 
-    socket.on('read fcb', function (data) {
-      var fcb = getFcb(data);
-
-      socket.emit('read fcb', {
-        id: fcb.getIdSync(),
+      socket.emit('read file', {
+        id: fcb.getIdStringSync(),
+        name: fcb.getNameSync(),
         content: fcb.readStringSync()
       });
     });
 
-    socket.on('read fcb', function (data) {
-      var fcb = getFcb(data);
+    socket.on('go back', function () {
+      var fcb = user.currentFolder.getParentSync();
 
-      socket.emit('read fcb', fcb.readStringSync());
+      if (fcb.getIdStringSync() === root.getIdStringSync()) {
+        return;
+      }
+      user.currentFolder = fcb;
+
+      socket.emit('open folder', {
+        path: fcb.getPathSync(),
+        subFcbs: openFolder(fcb)
+      });
     });
 
+    socket.on('open folder', function (data) {
+      var fcb = user.currentFolder.getFcbByIdSync(data.id);
+
+      console.log(fcb.getNameSync());
+
+      user.currentFolder = fcb;
+
+      socket.emit('open folder', {
+        path: fcb.getPathSync(),
+        subFcbs: openFolder(fcb)
+      });
+    });
+
+    function openFolder(fcb) {
+      var subFcbs = fcb.getSubFcbsSync();
+      var ret = [];
+      for (var i = 0; i < subFcbs.sizeSync(); i++) {
+        var f = subFcbs.getSync(i);
+        ret.push({
+          id: f.getIdStringSync(),
+          name: f.getNameSync(),
+          isFolder: f.isFolderSync()
+        });
+      }
+
+      return ret;
+    }
+
+    socket.on('new folder', function (data) {
+      var fcb = user.currentFolder.createSubFolderSync();
+
+      socket.emit('new folder', {
+        id: fcb.getIdStringSync(),
+        name: fcb.getNameSync(),
+        size: fcb.getSizeSync()
+      });
+    });
+
+    socket.on('rename fcb', function (data) {
+      var fcb = user.currentFolder.getFcbByIdSync(data.id);
+      fcb.setNameSync(data.name);
+    });
+
+    socket.on('delete fcb', function (data) {
+      var fcb = user.currentFolder.getFcbByIdSync(data.id);
+      fcb.deleteSync();
+    });
+
+    // ------------------------------------------------------------------------
+    // pcb
+    // ------------------------------------------------------------------------
     socket.on('pcb operation stop', function (data) {
       pcbManager.deletePCBSync(data);
     });
@@ -157,14 +260,6 @@ function initIo(io) {
     });
   });
 
-  function getFcb(id) {
-    for (var i = 0; i < fcbs.length; i++) {
-      if (id == fcbs[i].getIdSync()) {
-        return fcbs[i];
-      }
-    }
-  }
-
   var timer = function timer() {
     var data = {};
     data.seconds = seconds;
@@ -175,6 +270,8 @@ function initIo(io) {
     getMemoryInfo(data);
 
     getHardDiskInfo(data);
+
+    data.users = users;
     // increase counting
     seconds += interval / 1000;
 
@@ -187,8 +284,6 @@ function initIo(io) {
 
   ioInitialized = true;
 }
-
-var fcbs = [];
 
 function getPcbInfo(data) {
   data.pcbs = {
@@ -225,6 +320,7 @@ function createPcb(data) {
 
 function getMemoryInfo(data) {
   data.memory = {
+    mode: Memory.getAllocateModeSync().toStringSync(),
     sectionNum: Memory.getMemoryAllSectionNumSync(),
     idleSectionNum: Memory.getMemoryIdleSectionNumSync(),
     busySectionNum: Memory.getMemoryBusySectionNumSync(),
@@ -249,18 +345,30 @@ function getMemoryInfo(data) {
 function getHardDiskInfo(data) {
 
   data.disk = {
-    sectionNum: disk.sectionNum,
-    sectionSize: disk.sectionSize
+    sectionSize: disk.sectionSize,
+    sectionNum: disk.sectionNum
   };
 
   data.disk.diskSections = [];
-  var storage = disk.getStorageSync(),
+  var sections = disk.getSectionsSync(),
       fcb;
-  for (var i = 0; i < storage.sizeSync(); i++) {
-    var section = storage.getSync(i);
+  for (var i = 0; i < sections.sizeSync(); i++) {
+    var section = sections.getSync(i);
     data.disk.diskSections.push({
       isIdle: section.isIdleSync(),
       fcb: (fcb = section.getFcbSync()) ? fcb.getIdStringSync() : null
+    });
+  }
+
+  data.disk.fragments = [];
+  var fragments = disk.getFragmentsSync();
+  for (i = 0; i < fragments.sizeSync(); i++) {
+    var fragment = fragments.getSync(i);
+    data.disk.fragments.push({
+      name: fragment.getNameSync(),
+      size: fragment.getSizeSync(),
+      id: fragment.getIdStringSync(),
+      isIdle: fragment.isIdleSync()
     });
   }
 }

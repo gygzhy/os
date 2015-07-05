@@ -23,6 +23,7 @@ html
     link(rel="import" href="/paper-input/paper-textarea.html")
     link(rel="import" href="/paper-input/paper-input.html")
     link(rel="import" href="/paper-dialog/paper-dialog.html")
+    link(rel="import" href="/paper-checkbox/paper-checkbox.html")
     link(rel="import" href="/paper-slider/paper-slider.html")
     
     script(type="text/javascript" src="/chartjs/Chart.min.js")
@@ -41,19 +42,20 @@ html
         background: #f6f6f6;
       }
       
+      form {
+        overflow: hidden;
+      }
       .main {
         width: 900px;
         margin: 10px auto;
         padding: 10px 16px;
         background: #fff;
       }
-      
       .input-box {
         width: 23%;
         padding: 0 1%;
         float: left;
       }
-      
       table {
         width: 100%;
         border: 1px solid #ccc;
@@ -65,6 +67,7 @@ html
       table tr, table th {
         padding: 8px 15px;
       }
+    
   body
     paper-drawer-panel
       paper-header-panel(drawer)
@@ -81,11 +84,28 @@ html
           label cpu time
           paper-slider(min="1" max="20000" valu="1000")#cpuTime
         div#main
-          block cpu
-          block memory
-          block hard-disk
-    block desktop
+          block content
+    include ./desktop.jade
     script(type="text/javascript").
+      
+      $('form').on('click', 'paper-button,  paper-icon-button', function() {
+        if ($(this).attr('role') === 'ordinary') {
+          return;
+        }
+        
+        var form = $(this).parents('form');
+        var action = form.attr('action');
+        var data = {};
+        $(form).find('paper-input,paper-textarea,input,paper-radio-group').each(function(index, val) {
+          if ($(val).attr('label') != null || $(val).attr('name')) {
+            data[$(val).attr('label')] = $(val).val();
+          }
+        });
+        
+        console.log(data);
+        
+        socket.emit(action, data);
+      });
       
       function uuidToHex(uuid) {
         var g = parseInt(uuid.substr(2, 2), 16);
@@ -171,7 +191,7 @@ html
         
         var memory = data.memory;
         // update line chart
-        if (memoryHistory.datasets[0].points.length > 30) {
+        if (memoryHistory.datasets[0].points.length > 15) {
           memoryHistory.removeData();
         }
         memoryHistory.addData([memory.busySize, memory.idleSize],

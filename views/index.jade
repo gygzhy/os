@@ -1,6 +1,7 @@
 extends layout
 
-block memory
+block content
+  //- memory
   paper-material(elevation=2).main
     h1 Memory
     h3 Change Alogorithm
@@ -10,13 +11,11 @@ block memory
         paper-radio-button(name='NF') NF
         paper-radio-button(name='BF') BF
         paper-radio-button(name='WF') WF
-    h3 Memory History
-    canvas#memoryHistory(width="900", height='300')
-    h3 Memory Sections
-    canvas#memoryPercent(width='300' height='300')
+    h3 Memory State
+    canvas#memoryHistory(width="500", height='300')
+    canvas#memoryPercent(width='400' height='300')
   
-
-block cpu
+  //- cpu
   paper-material(elevation=2).main
     h1 CPU
     h3 Change Alogorithm
@@ -121,6 +120,7 @@ block cpu
               circle.from = ready;
               circle.fromQueue = readyQueue;
               readyQueue.append(circle.element);
+              circle.element.css('background', 'red');
               circle.status = 1;
               break;
             case 0:
@@ -128,6 +128,7 @@ block cpu
               circle.from = init;
               circle.fromQueue = initQueue;
               initQueue.append(circle.element);
+              circle.element.css('background', 'red');
               circle.status = 0;
               break;
             case 4:
@@ -144,6 +145,7 @@ block cpu
               circle.from = wait;
               circle.fromQueue = waitQueue;
               waitQueue.append(circle.element);
+              circle.element.css('background', 'red');
               circle.status = 3;
               break;
             case 2:
@@ -232,13 +234,11 @@ block cpu
           th user
           th status
       tbody#pcbTable
-    
-block hard-disk
+  
+  
+  //- harddisk
   style.
-    #disk-section-container {
-      width: 100%;
-      height: 300px;
-    }
+
     .disk-section {
       width: 8px;
       height: 8px;
@@ -246,18 +246,40 @@ block hard-disk
       background: #ccc;
       float: left;
     }
+    #disk-section-container {
+      overflow: hidden;
+    }
+    #disk-fragment-container {
+      overflow: hidden;
+    }
+    
+    #disk-fragment-container > div {
+      color: #fff;
+      float: left;
+      text-align: center;
+      height: 40px;
+      line-height: 40px;
+    }
+    
+    
   paper-material(elevation=2).main
     h1 hard disk
     h3 Hard Disk Block
-    paper-input(label="name")#fcb-name
-    paper-textarea#fcb-content
-    paper-button(raised)#add-fcb add
+    form(action="new fragment")
+      div.input-box
+        paper-input(label="name")
+      div.input-box
+        paper-input(label="size")
+      paper-button(raised) add
     div#disk-section-container
+    h3 Hard disk segments
+    div#disk-fragment-container
+      
   script.
     socket.on('heart beat', function(data) {
       var disk = data.disk;
       $('#disk-section-container').html('');
-      for (var i =0 ;i < disk.sectionNum; i ++) {
+      for (var i =0 ;i < disk.diskSections.length; i ++) {
         var sec = $('<div></div>');
         sec.addClass('disk-section');
         if (!disk.diskSections[i].isIdle) {
@@ -265,168 +287,98 @@ block hard-disk
         }
         $('#disk-section-container').append(sec);
       }
+      
+      
+      $('#disk-fragment-container').html('');
+      for(var i = 0; i < disk.fragments.length; i ++) {
+        var frag = $('<div class="disk-fragment">' + disk.fragments[i].name + '</div>');
+        frag.css({
+          width: disk.fragments[i].size / disk.sectionNum * 100+ '%',
+          background: uuidToHex(disk.fragments[i].id)
+        });
+        if (disk.fragments[i].isIdle) {
+          frag.css({
+            'background': '#eee',
+            'color': '#000'
+          });
+        }
+        $('#disk-fragment-container').append(frag);
+      }
     });
     
-    $('#add-fcb').on('click', function() {
-      socket.emit('new fcb', {
-        name: $('#fcb-name')[0].label,
-        content: $('#textarea')[0].value
-      });
-    });
-    
-    socket.on('new fcb', function(data) {
-      console.log(data);
-    });
-
-block desktop
+  //- user
   style.
-    #desktop {
-      display: none;
-      width: 100%;
-      position: relative;
+    #user-list > paper-checkbox {
+      padding: 10px 15px;
     }
-    #login {
-      width: 400px;
-      margin: 50px auto;
-      padding: 50px 60px;
-    }
-    #right-menu {
-      width: 200px;
-      display: none;
-      position: absolute;
-    }
-    #right-menu paper-item {
-      cursor: pointer;
-    }
-    #right-menu paper-item:hover {
-      background: #eee;
-    }
-    .desktop-file {
-      width: 80px;
-      height: 100px;
-      padding-top: 80px;
-      position: absolute;
-    }
-    .desktop-file p {
-      text-align: center;
-    }
-    
-    #editor-container {
-      position: absolute;
-      width: 700px;
-      height: 400px;
-      display: none;
-      left: 50%;
-      top: 50%;
-      margin-left: -350px;
-      margin-top: -200px;
-      background: #fafafa;
-      z-index: 200;
-    }
-  div#desktop
-    paper-material#login
-      h2 logging
-      paper-input(label="username")#username
-      paper-button(raised style="background: #66ff44")#login-btn Login
-    paper-material#menu-bar
-    paper-material#right-menu
-      paper-menu
-        paper-item#new-file new file
-        paper-item#new-folder new folder
-        paper-item#new-process new process
-        paper-item#exit-desktop exit
-    paper-material#editor-container
-      paper-toolbar
-        paper-button#editor-close close
-      paper-textarea#editor
-      paper-button#editor-edit edit
+  paper-material(elevation="2").main
+    h1 User
+    h3 Add user
+    form(action="add user")
+      paper-input(label="username")
+      paper-button(raised) Add
+    h3 User list
+    form(action="delete user")
+      paper-radio-group#user-list
+      paper-button(raised) Delete
+    script.
       
-  script.
-    // TODO: desktop
-    var user = 'admin';
-    $('#login-btn').on('click', function() {
-      socket.emit('user login', $('#username').val());
-      user = $('#username').val();
-      $('#login').hide();
-      $('#desktop').height(window.screen.availHeight);
-    });
-    
-    var position = {};
-    
-    $('#desktop').on('contextmenu', function(e) {
-      if (user === 'admin') {
-          return;
+      function update(A, B, equal, updatecb, morecb, lesscb) {
+        for(var a in A) {
+          var found = false;
+          for(var b in B) {
+            if (equal(a, b)) {
+              found = true;
+            }
+          }
+          if (!found) {
+            lesscb(A, B, a);
+            delete A[a];
+          }
+        };
+        
+        for(var b in B) {
+          var found = false;
+          for(var a in A) {
+            if (equal(a, b)) {
+              found = true;
+            }
+          }
+          if (!found) {
+            A[b] = B[b];
+            morecb(A, B, b);
+          }
+        };
       }
-      e.preventDefault();
       
-      position = {
-        x: e.clientX,
-        y: e.clientY
-      }
-      $('#right-menu').css({
-        top: e.clientY,
-        left: e.clientX
-      }).show();
-    });
-    
-    function createFile(name, id) {
-      var file = $('<div></div>');
-      file.addClass('desktop-file');
-      file.attr('name', name).attr('fid', id);
-      file.html('<p>' + name + '</p>');
-      return file;
-    }
-    socket.on('new fcb', function(data) {
-      var file =createFile(data.name, data.id);
-      $('#desktop').append(file);
-      file.css({
-        left: position.x,
-        top: position.y
+      var users = {};
+      socket.on('heart beat', function(data) {
+        for(var user in users) {
+          var found = false;
+          for(var newuser in data.users) {
+            if (user === newuser) {
+              found = true;
+            }
+          }
+          if (!found) {
+            $('#user-list paper-radio-button').filter(function(val) {
+              return $(val).html() === user;
+            });
+            delete users[user];
+          }
+        };
+        
+        for(var newuser in data.users) {
+          var found = false;
+          for(var user in users) {
+            if (user === newuser) {
+              found = true;
+            }
+          }
+          if (!found) {
+            users[newuser] = data[newuser];
+            $('#user-list').append($('<paper-radio-button name="' +newuser+ '">' + 
+              newuser + '</paper-radio-button>'))
+          }
+        };
       });
-    });
-    
-    socket.on('read fcb', function(data) {
-      $('#editor-container').show();
-      $('#editor')[0].value = data.content;
-      $('#editor').attr('pid', data.id);
-    });
-    
-    $('#editor-close').on('click', function() {
-      $('#editor-container').hide();
-    });
-    
-    $('#editor-edit').on('click',function() {
-      socket.emit('edit fcb', {
-        id: $('#editor').attr('pid'),
-        content: $('#editor').val()
-      });
-    });
-    
-    $('#desktop').on('click', function(e) {
-      
-      $('#right-menu').hide();
-    });
-    
-    $('#desktop').on('click', '.desktop-file', function() {
-      socket.emit('read fcb', $(this).attr('fid'));
-    });
-    
-    $('#new-file').on('click', function() {
-      socket.emit('new fcb', {
-        name: 'new file',
-        content: ''
-      });
-    });
-    $('#new-folder').on('click', function() {
-      
-    });
-    $('#new-process').on('click', function() {
-      
-    });
-    $('#exit-desktop').on('click', function() {
-      $('paper-drawer-panel').show();
-      $('#desktop').hide();
-      
-      socket.emit('user logout', user);
-      user = 'admin';
-    });

@@ -12,29 +12,73 @@ public class FCB {
 	private Disk.DiskSection head;
 	private Disk.DiskSection tail;
 	
-	private Disk disk;
+	private Disk.DiskFragment fragment;
 	
 	private UUID id;
 	
 	private String name;
 	
+	private boolean isFolder;
+	
+	private FCB parent;
+	// store the sub fcb
+	private ArrayList<FCB> subFcbs;
+	
 	public String getName() {
 		return name;
 	}
+	
+	
+
+	public boolean isFolder() {
+		return isFolder;
+	}
+
+
+
+	public FCB getParent() {
+		return parent;
+	}
+
+
+
+	public ArrayList<FCB> getSubFcbs() {
+		return subFcbs;
+	}
+
+
 
 	public void setName(String name) {
 		this.name = name;
 	}
 
 	public int getSize() {
-		int size = 0;
-		Disk.DiskSection cur = head;
-		while (cur != null) {
-			size ++;
-			cur = cur.next;
+		if (isFolder) {
+			int size = 0;
+			for (FCB fcb : subFcbs) {
+				size += fcb.getSize();
+			}
+			return size;
+		} else {
+			int size = 0;
+			Disk.DiskSection cur = head;
+			while (cur != null) {
+				size ++;
+				cur = cur.next;
+			}
+			
+			return (size - 1) * fragment.disk.sectionSize + tail.data.size(); 
 		}
-		
-		return (size - 1) * disk.sectionSize + tail.data.size(); 
+	}
+	
+	public String getPath() {
+		FCB cur = this;
+		String path = "";
+		while (cur != null) {
+			path = cur.name + " / " + path;
+			cur = cur.parent;
+		}
+		return path;
 	}
 
 	public UUID getId() {
@@ -49,16 +93,79 @@ public class FCB {
 	 * delete a file
 	 */
 	public void delete() {
-		Disk.DiskSection cur = head;
-		while (cur != null) {
-			// set the section to be idle so it's writable
-			cur = cur.free();
+		if (isFolder) {
+			for(int i = 0, l = subFcbs.size(); i < l; i ++) {
+				subFcbs.get(0).delete();
+			}
+			head.free();
+		} else {
+			Disk.DiskSection cur = head;
+			while (cur != null) {
+				// set the section to be idle so it's writable
+				cur = cur.free();
+			}
+			
+			head = null;
 		}
 		
-		head = null;
+		if(parent != null) {
+			parent.subFcbs.remove(this);
+			parent = null;
+		}
+	}
+	
+	public void addSubFcb(FCB fcb) {
+		if (isFolder) {
+			fcb.parent = this;
+			subFcbs.add(fcb);
+			return;
+		}
+		
+		System.err.println("Not a folder");
+	}
+	
+	public FCB createSubFile() {
+		if (isFolder) {
+			FCB fcb = new FCB(fragment);
+			fcb.parent = this;
+			subFcbs.add(fcb);
+			return fcb;
+		}
+		
+		System.err.println("Not a folder");
+		return null;
+	}
+	
+	public FCB createSubFolder() {
+		if (isFolder) {
+			FCB fcb = new FCB(fragment, true);
+			fcb.parent = this;
+			subFcbs.add(fcb);
+			return fcb;
+		}
+		System.err.println("Not a folder");
+		return null;
+	}
+	
+	public FCB getFcbById(String id) throws Exception {
+		if (isFolder) {
+			for (FCB fcb : subFcbs) {
+				if (fcb.id.toString().equals(id)) {
+					return fcb;
+				}
+			}
+			return null;
+		} else {
+			System.err.println("This is not a folder");
+			return null;
+		}
 	}
 	
 	public void append(ArrayList<Character> data) {
+		if (isFolder) {
+			System.err.println("This is a folder");
+			return;
+		}
 		ArrayList<Character> newData = (ArrayList<Character>)read().clone();
 		newData.addAll(data);
 		
@@ -70,21 +177,26 @@ public class FCB {
 	}
 	
 	public void replace(ArrayList<Character> data) {
-		int sectionNumToReplace = (int) Math.ceil((double)data.size() / (double)disk.sectionSize);
+		if (isFolder) {
+			System.err.println("This is a folder");
+			return;
+		}
+		
+		int sectionNumToReplace = (int) Math.ceil((double)data.size() / (double)fragment.disk.sectionSize);
 		Disk.DiskSection cur = head;
 		for(int i =0; i < sectionNumToReplace; i ++) {
 			if (cur == null) {
-				cur = disk.allocateSection(this);
+				cur = fragment.allocateSection(this);
 				cur.data.clear();
-				for(int j = 0; j < disk.sectionSize && j < (data.size() - i * disk.sectionSize); j ++ ) {
-					cur.data.add(data.get(i* disk.sectionSize + j)) ;
+				for(int j = 0; j < fragment.disk.sectionSize && j < (data.size() - i * fragment.disk.sectionSize); j ++ ) {
+					cur.data.add(data.get(i* fragment.disk.sectionSize + j)) ;
 				}
 				
 				tail.next = cur;
 			} else {
 				cur.data.clear();
-				for(int j = 0; j < disk.sectionSize && j < (data.size() - i * disk.sectionSize); j ++ ) {
-					cur.data.add(data.get(i* disk.sectionSize + j)) ;
+				for(int j = 0; j < fragment.disk.sectionSize && j < (data.size() - i * fragment.disk.sectionSize); j ++ ) {
+					cur.data.add(data.get(i* fragment.disk.sectionSize + j)) ;
 				}
 			}
 			tail = cur;
@@ -102,6 +214,10 @@ public class FCB {
 	}
 	
 	public ArrayList<Character> read() {
+		if (isFolder) {
+			System.err.println("This is a folder");
+			return null;
+		}
 		ArrayList<Character> ret = new ArrayList<>(); 
 		Disk.DiskSection cur = head;
 		while (cur != null) {
@@ -118,12 +234,34 @@ public class FCB {
 		return arrayListToString(read());
 	}
 	
-	public FCB(Disk disk) {
-		this.disk = disk;
-		head = tail = disk.allocateSection(this);
+	public FCB(Disk.DiskFragment fragment, boolean isFolder) {
+		this.fragment = fragment;
+		head = tail = fragment.allocateSection(this);
 		head.next = null;
 		id = UUID.randomUUID();
+		
+		if (isFolder) {
+			name = "new folder";
+		} else {
+			name = "new file";
+		}
+		
+		subFcbs = new ArrayList<>();
+		
+		this.isFolder = isFolder;
+	}
+	
+	public FCB(Disk.DiskFragment fragment) {
+		this.fragment = fragment;
+		head = tail = fragment.allocateSection(this);
+		head.next = null;
+		id = UUID.randomUUID();
+		
 		name = "new file";
+		
+		subFcbs = null;
+		
+		this.isFolder = false;
 	}
 	
 	private ArrayList<Character> stringToArraylist(String str) {

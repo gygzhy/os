@@ -1,0 +1,214 @@
+//- desktop
+style.
+  #desktop {
+    width: 100%;
+    position: relative;
+  }
+  paper-drawer-panel {
+    height: 0;
+  }
+  #login {
+    width: 400px;
+    margin: 50px auto;
+    padding: 50px 60px;
+  }
+  #right-menu, #file-menu {
+    width: 200px;
+    display: none;
+    position: absolute;
+    padding: 10px 0;
+  }
+  #right-menu paper-button, #file-menu paper-button {
+    display: block;
+    text-align: left;
+  }
+  #right-menu paper-button:hover, #file-menu paper-button:hover {
+    background: #eee;
+  }
+  .desktop-file, .desktop-folder {
+    width: 60px;
+    margin: 10px;
+    float: left;
+  }
+  .desktop-file .icon{
+    height: 70px;
+    margin-bottom: 5px;
+    background: #fff;
+  }
+  .desktop-folder .icon {
+    height: 70px;
+    margin-bottom: 5px;
+    background: blue;
+  }
+
+  .desktop-file p, .desktop-folder p {
+    text-align: center;
+  }
+  
+  #user-toolbar {
+    display: none;
+  }
+  
+  #editor-container {
+    position: absolute;
+    width: 700px;
+    height: 400px;
+    display: none;
+    left: 50%;
+    top: 50%;
+    margin-left: -350px;
+    margin-top: -200px;
+    background: #fafafa;
+    z-index: 200;
+  }
+  #editor-container paper-editor {
+    margin: 10px 20px;
+  }
+div#desktop
+  paper-toolbar#user-toolbar
+    form(action="go back")
+      paper-icon-button(icon="back")
+    span#path
+  paper-material#login
+    form(action="user login")
+      paper-input(label="username")
+      paper-button(raised style="background: #66ff44") Login
+      paper-button#exit-btn(role="ordinary") exit
+  paper-material#menu-bar
+  paper-material#right-menu
+      form(action="new file")
+        paper-button new file
+      form(action="new folder")  
+        paper-button new folder
+      form(action="new process")  
+        paper-button new process
+        paper-button#exit-desktop exit
+  paper-material#file-menu
+    form(action="delete file")
+      input(type='hidden')
+      paper-button delete
+  paper-material#editor-container
+    paper-toolbar
+      paper-button#editor-close close
+    form(action="edit file")
+      input(label="id" type="hidden")#editor-id
+      paper-textarea(label="content")#editor
+      paper-button edit
+    
+script.
+  $('#desktop').height($(window).height());
+  // TODO: desktop
+  var user = 'admin';
+  
+  socket.on('user login', function(data) {
+    user = data.username;
+    if (user == 'admin') {
+        return;
+    } else {
+      $('#login').hide();
+      $('#user-toolbar').fadeTo(1, 200).find('#path').html(user);
+    }
+  });
+  
+  $('#desktop').on('contextmenu', function(e) {
+    if (user === 'admin') {
+        return;
+    }
+    e.preventDefault();
+    
+    $('#right-menu').css({
+      top: e.clientY,
+      left: e.clientX
+    }).show();
+  });
+  
+  function createFile(name, id) {
+    var file = $('<div></div>');
+    file.addClass('desktop-file');
+    file.attr('name', name).attr('fid', id);
+    file.html('<div class="icon"></div><p>' + name + '</p>');
+    return file;
+  }
+  
+  function createFolder(name, id) {
+    var file = $('<div></div>');
+    file.addClass('desktop-folder');
+    file.attr('name', name).attr('fid', id);
+    file.html('<div class="icon"></div><p>' + name + '</p>');
+    return file;
+  }
+  
+  socket.on('new file', function(data) {
+    var file =createFile(data.name, data.id);
+    $('#desktop').append(file);
+  });
+  
+  socket.on('new folder', function(data) {
+    var file = createFolder(data.name, data.id);
+    $('#desktop').append(file);
+  })
+  
+  socket.on('read file', function(data) {
+    $('#editor-container').show();
+    $('#editor').val(data.content);
+    $('#editor-id').val(data.id);
+  });
+  
+  socket.on('open folder', function(data) {
+    $('#desktop').find('.desktop-file, .desktop-folder').remove();
+    console.log(data);
+    for(var i =0 ; i<data.subFcbs.length; i ++) {
+      var fcb = null, f = data.subFcbs[i];
+      if(f.isFolder) {
+        fcb = createFolder(f.name, f.id);
+      } else {
+        fcb = createFile(f.name, f.id);
+      }
+      
+      $('#desktop').append(fcb);
+    }
+    
+    $('#path').html(data.path);
+  });
+  
+  $('#editor-close').on('click', function() {
+    $('#editor-container').hide();
+  });
+  
+  $('#desktop').on('click', function(e) {
+    $('#right-menu, #file-menu').hide();
+  });
+  
+  $('#desktop').on('click', '.desktop-file', function() {
+    socket.emit('read file', {
+      id: $(this).attr('fid')
+    });
+  });
+  
+  $('#desktop').on('contextmenu', '.desktop-file, .desktop-folder', function(e) {
+    $('#file-menu').css({
+      top: e.clientY,
+      left: e.clientX
+    }).show();
+    
+    $('#file-menu input').val($(this).attr('fid'));
+  });
+  
+  $('#desktop').on('click', '.desktop-folder', function() {
+    socket.emit('open folder', {
+      id: $(this).attr('fid')
+    });
+  });
+  
+  $('#exit-btn').on('click', logout);
+  $('#exit-desktop').on('click', logout);
+  
+  function logout() {
+    $('paper-drawer-panel').show().css('height', '100%');
+    $('#desktop').hide();
+    $('#login').show();
+    $('#user-toolbar').hide();
+    
+    socket.emit('user logout', user);
+      user = 'admin';
+  }
