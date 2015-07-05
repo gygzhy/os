@@ -15,8 +15,7 @@ import com.csu.os.tools.Parameter;
 public class MessagesManager {
 
 	private List<Message> messageList = new ArrayList<Message>();//消息队列
-	private int totalSize = 0;//消息总大小
-	
+	private int totalSize = 0;//消息总大小	
 	
 	public int getTotalSize() {
 		return totalSize;
