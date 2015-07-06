@@ -14,6 +14,8 @@
   ],
   "dependencies": {
     "polymer": "Polymer/polymer#^1.0.0",
+    "chartjs": "~1.0.2",
+    "jquery": "~2.1.4",
     "iron-ajax": "PolymerElements/iron-ajax#1.0.0",
     "iron-behaviors": "PolymerElements/iron-behaviors#^1.0.0",
     "iron-collapse": "PolymerElements/iron-collapse#^1.0.0",
@@ -55,10 +57,7 @@
     "paper-tabs": "PolymerElements/paper-tabs#^1.0.0",
     "paper-toast": "PolymerElements/paper-toast#^1.0.0",
     "paper-toggle-button": "PolymerElements/paper-toggle-button#^1.0.0",
-    "paper-toolbar": "PolymerElements/paper-toolbar#^1.0.0",
-    "chartjs": "~1.0.2",
-    "jquery": "~2.1.4",
-    "sortable-table": "~0.11.1"
+    "paper-toolbar": "PolymerElements/paper-toolbar#^1.0.0"
   },
   "resolutions": {
     "polymer": ">=0.5.2",
