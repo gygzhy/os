@@ -3,32 +3,32 @@ extends layout
 block content
   //- memory
   paper-material(elevation=2).main
-    h1 Memory
-    h3 Change Alogorithm
+    h1 内存
+    h3 选择内存分配算法
     div.change-mode(data-mode="memory")
       paper-radio-group(selected='FF')
-        paper-radio-button(name='FF') FF
-        paper-radio-button(name='NF') NF
-        paper-radio-button(name='BF') BF
-        paper-radio-button(name='WF') WF
-    h3 Memory State
+        paper-radio-button(name='FF') 首次适应
+        paper-radio-button(name='NF') 下次适应
+        paper-radio-button(name='BF') 最佳适应
+        paper-radio-button(name='WF') 最坏适应
+    h3 内存状态
     canvas#memoryHistory(width="500", height='300')
     canvas#memoryPercent(width='400' height='300')
   
   //- cpu
   paper-material(elevation=2).main
-    h1 CPU
-    h3 Change Alogorithm
+    h1 处理器
+    h3 选择调度算法
     div.change-mode(data-mode="cpu")
       paper-radio-group(selected='0')
-        paper-radio-button(name='0') FCFS
-        paper-radio-button(name='1') LZ
-        paper-radio-button(name='2') DJFKLZ
-        paper-radio-button(name='3') JTYXJ
-        paper-radio-button(name='4') DTYXJ
-        paper-radio-button(name='5') ZDZY
-        paper-radio-button(name='6') ZGXYB
-    h3 Adding process
+        paper-radio-button(name='0') 先来先服务
+        paper-radio-button(name='1') 轮转
+        paper-radio-button(name='2') 多级反馈轮转
+        paper-radio-button(name='3') 静态优先级
+        paper-radio-button(name='4') 动态优先级
+        paper-radio-button(name='5') 最短作业
+        paper-radio-button(name='6') 最高响应比
+    h3 添加进程
       form(action="add a process")
         div.input-box
           paper-input(label="name")
@@ -38,48 +38,54 @@ block content
           paper-input(label="time")
         div.input-box
           paper-input(label="level")
-        div
-          paper-button(raised style="background:#99ee44") Add
+        div.input-box
+          paper-button(raised) 添加
     div#play-ground
       div#ready-ground.ground
+        p 就绪队列
       div#init-ground.ground
+        p 初始队列
       div#wait-ground.ground
+        p 阻塞队列
       div#finish-ground.ground
+        p 完成队列
+      div.clear-fix  
         
-    h3 Cpu Status
+    h3 处理器状态
     paper-material
       table
         thead
           tr
-            th name
-            th cpu time
-            th memory size
-            th level
-            th user
-            th status
-            th operation
+            th 线程名
+            th 运行时间
+            th 占用内存 
+            th 优先级
+            th 状态
+            th 消息
+            th 操作
         tbody#pcbTable  
 
   //- harddisk
   paper-material(elevation=2).main
-    h1 hard disk
-    h3 Add Fragment
+    h1 硬盘
+    h3 添加分区
     form(action="new fragment")
       div.input-box
         paper-input(label="name")
       div.input-box
         paper-input(label="size")
-      paper-button(raised) add
+      div.input-box    
+        paper-button(raised) 添加
       div.clear-fix
-    h3 Delete Fragment
+    h3 删除分区
     form(action="delete fragment")
       div.input-box
         paper-input(label="name")
-      paper-button(raised) delete
+      paper-button(raised).red 删除
       div.clear-fix
-    h3 Hard Disk Sections    
+    h3 硬盘块状态
     div#disk-section-container
-    h3 Hard disk segments
+    h3 分区状态
     div#disk-fragment-container
       
   //- user
@@ -88,22 +94,22 @@ block content
       padding: 10px 15px;
     }
   paper-material(elevation="2").main
-    h1 User
-    h3 Add user
+    h1 用户
+    h3 添加用户
     form(action="add user")
       div.input-box
         paper-input(label="username")
       div.input-box
         paper-input(label="fragment")    
-      div
-        paper-button(raised) Add
-    h3 User list
+      div.input-box
+        paper-button(raised) 添加
+    h3 用户列表
     div#user-list
-    h3 Delete user
+    h3 删除用户
     form(action="delete user")
       div.input-box
         paper-input(label="username")
-      div
-        paper-button(raised) Delete
+      div.input-box    
+        paper-button(raised).red 删除
 
       

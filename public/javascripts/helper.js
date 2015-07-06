@@ -90,8 +90,11 @@ function createTr(pcb) {
   tr.append($('<td>' + pcb.cpuTime + '</td>'));
   tr.append($('<td>' + pcb.memorySize + '</td>'));
   tr.append($('<td>' + pcb.level + '</td>'));
-  tr.append($('<td>' + pcb.user + '</td>'));
   tr.append($('<td>' + pcb.status + '</td>'));
-  tr.append($('<td><paper-button class="operation" label="stop">stop</paper-button><paper-button class="operation" label="wait">wait</paper-button><paper-button class="operation" label="restart">restart</paper-button></td>'));
+  tr.append($('<td>' + pcb.message + '</td>'));
+  tr.append($('<td><paper-button class="operation" label="stop">stop</paper-button>' +
+    '<paper-button class="operation" label="wait">wait</paper-button>' +
+    '<paper-button class="operation" label="restart">restart</paper-button>' +
+    '<paper-button class="operation" label="message">message</paper-button></td>'));
   return tr;
 }

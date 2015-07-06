@@ -72,7 +72,6 @@ table td, table th {
 #play-ground {
   width: 100%;
   height: 200px;
-  overflow: hidden;
   margin: 0 auto;
   position: relative;
 }
@@ -82,21 +81,43 @@ table td, table th {
   height: 100px;
   border: 1px solid #eee;
   float: left;
+  position: relative;
+}
+
+.ground p {
+  position: absolute;
+  bottom: 0px;
+  right: 10px;
+  opacity: 0.8;
 }
 
 .play-circle {
-  width: 60px;
-  height: 60px;
-  border-radius: 60px;
-  background: red;
+  width: 30px;
+  height: 30px;
+  border-radius: 30px;
+  background: #64B5F6;
   float: left;
+  color: #fff;
   text-align: center;
-  line-height: 60px;
-  opacity: .6;
+  line-height: 30px;
+  margin: 5px 2px;
 
   transition: all 300ms 0ms ease-in;
 }
 
 #user-list span {
   margin: 0 20px;
+}
+
+paper-button[raised] {
+  background-color: #689F38;
+  color: #fff;
+}
+paper-button[raised].red {
+  background-color: #D32F2F;
+  color: #fff;
+}
+paper-button[raised].blue {
+  background-color: #1976D2;
+  color: #fff;
 }

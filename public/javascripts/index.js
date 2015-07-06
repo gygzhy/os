@@ -46,15 +46,14 @@ document.querySelector('#cpuTime').addEventListener('value-change', function() {
 });
 
 $('#enter-desktop').on('click', function() {
-  $('paper-drawer-panel').hide();
-  $('#desktop').show();
-
+  $('#manage').hide();
+  $('#desktop').fadeTo(400, 1);
   $('#login').show();
 });
 
-$('#pcbTable').on( 'click', '.operation',function() {
+$('#pcbTable').on( 'click', '.operation', function() {
   var label = $(this).attr('label');
-  socket.emit('pcb operation ' + label, $(this).parents('tr').attr('pid'));
+  socket.emit('pcb operation ' + label, {id: $(this).parents('tr').attr('pid')});
 });
 
 socket.on('server error', function(data) {

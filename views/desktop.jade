@@ -3,14 +3,27 @@ style.
   #desktop {
     width: 100%;
     position: relative;
+    display: none;
+  }
+  #desktop-main {
+    display: none;
+    width: 60%;
+  }
+  #desktop-communicate {
+    display: none;
+    width: 40%;
+  }
+  #desktop-main, #desktop-communicate {
+    float: left;
   }
   paper-drawer-panel {
     height: 0;
   }
   #login {
-    width: 400px;
-    margin: 50px auto;
-    padding: 50px 60px;
+    position: relative;
+    top: 100px; 
+    width: 300px;
+    margin: 0 auto;
   }
   #right-menu, #file-menu {
     width: 200px;
@@ -34,11 +47,6 @@ style.
     text-align: center;
   }
   
-  .desktop-file iron-icon, .desktop-folder iron-icon {
-    --iron-icon-height: 24px;
-    --iron-icon-width: 24px;
-  }
-  
   #user-toolbar {
     display: none;
   }
@@ -53,9 +61,28 @@ style.
     margin-top: -200px;
     z-index: 200;
   }
+  
   #editor-container paper-dialog-scrollable {
     height: 300px;
     overflow: auto;
+  }
+  #desktop-communicate-message {
+    padding: 0 20px;
+    height: 70%;
+    overflow: auto;
+  }
+  #desktop-communicate-editor {
+    padding: 0 20px;
+    height: 30%;
+    overflow: auto;
+  }
+  #desktop-communicate-editor paper-textarea {
+    border: 0;
+  }
+  #desktop-communicate-editor paper-button {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
   }
 div#desktop
   paper-toolbar#user-toolbar
@@ -64,9 +91,12 @@ div#desktop
     span#path
   paper-material#login
     form(action="user login")
-      paper-input(label="username")
-      paper-button(raised style="background: #66ff44") Login
-      paper-button#exit-btn(role="ordinary") exit
+      paper-toolbar
+        paper-icon-button(icon="arrow-back")#exit-btn exit
+        h2 登陆桌面
+      div(style="padding: 10px 30px 30px 30px;")
+        paper-input(label="username")
+        paper-button(raised) Login
   paper-material#menu-bar
   paper-material#right-menu.context-menu
     form(action="new file")
@@ -89,11 +119,18 @@ div#desktop
     div.button
       paper-button(role="ordinary")#editor-close close
       paper-button edit
-  paper-material#desktop-main    
+  paper-material#desktop-main
+  paper-material#desktop-communicate
+    paper-material#desktop-communicate-message
+    paper-material#desktop-communicate-editor
+      form(action="send message")
+        input(type="hidden" name="to")
+        paper-textarea(label="message")
+        paper-button(raised) Send
     
 script.
   $('#desktop').height($(window).height());
-  $('#desktop-main').height($(window).height() - $('#user-toolbar').height());
+  $('#desktop-main, #desktop-communicate').height($(window).height() - $('#user-toolbar').height());
   // TODO: desktop
   var user = 'admin';
   
@@ -103,7 +140,7 @@ script.
         return;
     } else {
       $('#login').hide();
-      $('#desktop-main').fadeTo(200, 1);
+      $('#desktop-main, #desktop-communicate').fadeTo(200, 1);
       $('#user-toolbar').fadeTo(200, 1).find('#path').html(user);
     }
   });
@@ -124,6 +161,26 @@ script.
     return file;
   }
   
+  
+  //- data message
+  socket.on('send message', function(data) {
+    var message = $('<p></p>');
+    var element = $('<span>['+ getTime(new Date(data.time)) +']</span><span>' + data.from + ': </span>');
+    message.append(element);
+    message.append(data.message);
+    
+    if (data.from === user) {
+      message.css('text-align', 'right');
+    }
+    $('#desktop-communicate-message').append(message);
+  });
+  
+  function getTime(date) {
+    return date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
+  }
+  
+  
+  //- file and folder
   socket.on('new file', function(data) {
     var file =createFile(data.name, data.id);
     $('#desktop-main').append(file);
@@ -210,9 +267,9 @@ script.
   $('#exit-desktop').on('click', logout);
   
   function logout() {
-    $('paper-drawer-panel').show().css('height', '100%');
+    $('#manage').css('height', '100%').fadeTo(400, 1);
     $('#desktop').hide();
-    $('#desktop-main').hide();
+    $('#desktop-main, #desktop-communicate').hide();
     $('#login').show();
     $('#user-toolbar').hide();
     

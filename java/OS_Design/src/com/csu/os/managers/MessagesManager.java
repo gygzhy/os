@@ -98,7 +98,7 @@ public class MessagesManager {
 				for(PCB pcb:pcbManager.getTotalPCBList()) {
 					
 					//判断进程是否为已完成进程
-					if(pcb.getStatus() == 4) {
+					if(pcb.getStatus() == 4 || pcb.getpId() == message.getsId()) {
 						continue;
 					}
 					
@@ -129,6 +129,7 @@ public class MessagesManager {
 				}
 			}
 		}
+		messageList.clear();
 		
 	}
 	

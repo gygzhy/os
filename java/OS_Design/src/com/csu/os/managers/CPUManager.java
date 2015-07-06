@@ -38,14 +38,14 @@ public class CPUManager {
 					//pcbManager.updateTotalPCBList();
 //					System.out.println(pcbManager.getExecPCB());
 //					System.out.println("size:"+pcbManager.getTotalPCBList().size());
-					for(int i=0; i<pcbManager.getTotalPCBList().size(); i++) {
-						System.out.println(pcbManager.getTotalPCBList().get(i));
-					}
-					for(int i=0; i<pcbManager.getTotalPCBList().size(); i++) {
-						for(int j=0; j<pcbManager.getTotalPCBList().get(i).getReceiveMessageList().size(); j++) {
-							System.out.println(pcbManager.getTotalPCBList().get(i).getReceiveMessageList().get(j));
-						}
-					}
+//					for(int i=0; i<pcbManager.getTotalPCBList().size(); i++) {
+//						System.out.println(pcbManager.getTotalPCBList().get(i));
+//					}
+//					for(int i=0; i<pcbManager.getTotalPCBList().size(); i++) {
+//						for(int j=0; j<pcbManager.getTotalPCBList().get(i).getReceiveMessageList().size(); j++) {
+//							System.out.println(pcbManager.getTotalPCBList().get(i).getReceiveMessageList().get(j));
+//						}
+//					}
 //					System.out.println(pcbManager.getInitPCBList().size()+"----"+pcbManager.getReadyPCBList().size()+"----"+
 //							pcbManager.getWaitPCBList().size()+"----"+pcbManager.getFinishPCBList().size());
 					

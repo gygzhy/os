@@ -38,22 +38,13 @@ html
     script(type="text/javascript" src="/javascripts/heart-beat.js")
       
   body
-    paper-drawer-panel
-      paper-header-panel(drawer)
-        paper-toolbar(style="background: #3333aa")
-          paper-icon-button(icon='menu' alt='menu')
-        paper-material
-          paper-menu(selected=0)
-            paper-item CPU
-            paper-item Memory
-            paper-item Hard Disk
-            paper-item#enter-desktop Enter desktop
-      paper-header-panel(main) 
-        paper-toolbar
-          label cpu time
-          paper-slider(min="1" max="20000" valu="1000")#cpuTime
-        div#main
-          block content
+    div#manage
+      paper-toolbar(style="background: #3333aa")
+        paper-button(icon='menu' alt='menu')#enter-desktop 进入桌面
+        label cpu time
+        paper-slider(min="1" max="20000" valu="1000")#cpuTime
+      div#main
+        block content
     include ./desktop.jade
     script(type="text/javascript" src="/javascripts/index.js")
           

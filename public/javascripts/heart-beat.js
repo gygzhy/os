@@ -107,7 +107,7 @@ $(function() {
         circle.from = ready;
         circle.fromQueue = readyQueue;
         readyQueue.append(circle.element);
-        circle.element.css('background', 'red');
+        circle.element.css('background', '#2196F3');
         circle.status = 1;
         break;
       case 0:
@@ -115,7 +115,7 @@ $(function() {
         circle.from = init;
         circle.fromQueue = initQueue;
         initQueue.append(circle.element);
-        circle.element.css('background', 'red');
+        circle.element.css('background', '#9FA8DA');
         circle.status = 0;
         break;
       case 4:
@@ -132,7 +132,7 @@ $(function() {
         circle.from = wait;
         circle.fromQueue = waitQueue;
         waitQueue.append(circle.element);
-        circle.element.css('background', 'red');
+        circle.element.css('background', '#8D6E63');
         circle.status = 3;
         break;
       case 2:
@@ -140,7 +140,7 @@ $(function() {
         circle.from = ready;
         circle.fromQueue = readyQueue;
         readyQueue.append(circle.element);
-        circle.element.css('background', '#99fe78');
+        circle.element.css('background', '#FF9800');
         circle.status = 2;
         break;
     }

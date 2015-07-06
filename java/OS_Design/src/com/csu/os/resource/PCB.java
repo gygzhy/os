@@ -284,6 +284,8 @@ public class PCB implements Serializable {
 			//连接信息字符串
 			allData = allData + message.getmData() + ",";
 		}
+		
+		receiveMessageList.clear();
 		return allData;
 	}
 	

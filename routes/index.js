@@ -166,6 +166,17 @@ function initIo(io) {
     });
 
     // ------------------------------------------------------------------------
+    // user message
+    // ------------------------------------------------------------------------
+    socket.on('send message', function (data) {
+      data.time = Date.now();
+      data.from = user.name;
+      if (data.to) {} else {
+        io.emit('send message', data);
+      }
+    });
+
+    // ------------------------------------------------------------------------
     // file and folder
     // ------------------------------------------------------------------------
 
@@ -182,6 +193,11 @@ function initIo(io) {
       var fcb = user.currentFolder.getFcbByIdSync(data.id);
       fcb.replaceSync(data.content);
       fcb.setNameSync(data.name);
+
+      socket.emit('open folder', {
+        path: user.currentFolder.getPathSync(),
+        subFcbs: openFolder(user.currentFolder)
+      });
     });
 
     socket.on('read file', function (data) {
@@ -262,15 +278,20 @@ function initIo(io) {
     // pcb
     // ------------------------------------------------------------------------
     socket.on('pcb operation stop', function (data) {
-      pcbManager.deletePCBSync(data);
+      pcbManager.deletePCBSync(data.id);
     });
 
     socket.on('pcb operation restart', function (data) {
-      pcbManager.activatePCBSync(data);
+      pcbManager.activatePCBSync(data.id);
     });
 
     socket.on('pcb operation wait', function (data) {
-      pcbManager.hangPCBSync(data);
+      pcbManager.hangPCBSync(data.id);
+    });
+
+    socket.on('pcb operation message', function (data) {
+      var pcb = pcbManager.getPcbByIdSync(data.id);
+      pcb.productMessage(null, 0, 'Hey ' + pcb.getNameSync());
     });
   });
 
@@ -309,7 +330,8 @@ function getUserInfo(data) {
       var fcb = root.getSubFcbsSync().getSync(j);
       data.users[fcb.getNameSync()] = {
         id: fcb.getIdSync,
-        folder: fcb
+        folder: fcb,
+        name: fcb.getNameSync()
       };
     }
   }
@@ -318,10 +340,10 @@ function getUserInfo(data) {
 function getPcbInfo(data) {
   data.pcbs = {
     mode: pcbManager.getArithmeticStatusSync(),
-    init: pcbArray(pcbManager.getInitPCBListSync()),
-    ready: pcbArray(pcbManager.getReadyPCBListSync()),
-    wait: pcbArray(pcbManager.getWaitPCBListSync()),
-    finish: pcbArray(pcbManager.getFinishPCBListSync()),
+    // init: pcbArray(pcbManager.getInitPCBListSync()),
+    // ready: pcbArray(pcbManager.getReadyPCBListSync()),
+    // wait: pcbArray(pcbManager.getWaitPCBListSync()),
+    // finish: pcbArray(pcbManager.getFinishPCBListSync()),
     total: pcbArray(pcbManager.getTotalPCBListSync())
   };
 }
@@ -344,7 +366,8 @@ function createPcb(data) {
     memorySize: pcb.getMemorySync().getSizeSync(),
     level: pcb.getLevelSync(),
     status: pcb.getStatusSync(),
-    user: pcb.getUserSync()
+    user: pcb.getUserSync(),
+    message: pcb.outputMessageSync()
   };
 }
 
