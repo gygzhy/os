@@ -2,12 +2,14 @@ package com.csu.os.managers;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import com.csu.os.resource.Memory;
 import com.csu.os.resource.PCB;
 import com.csu.os.tools.Parameter;
 import com.csu.os.tools.SortByLevel;
+import com.csu.os.tools.SortByName;
 import com.csu.os.tools.SortByRunTime;
 import com.csu.os.tools.SortByWT;
 
@@ -267,6 +269,8 @@ public class PCBManager {
 			
 			totalPCBList.add(execPCB);
 		}
+		
+		Collections.sort(totalPCBList, new SortByName());
 	}
 	
 	
