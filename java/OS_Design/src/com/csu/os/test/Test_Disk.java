@@ -48,7 +48,7 @@ public class Test_Disk {
 		Disk.DiskFragment A = disk.addFragment(1024, "A");
 		assertEquals(disk.getAvailFragments().size(), 1);
 		assertEquals(disk.getAvailFragments().get(0).getName(), "A");
-		assertEquals(disk.getFramentByName("A"), A);
+		assertEquals(disk.getFragmentByName("A"), A);
 	}
 	
 	@Test
@@ -58,7 +58,7 @@ public class Test_Disk {
 		
 		assertEquals(disk.getAvailFragments().size(), 2);
 		assertEquals(disk.getAvailFragments().get(1).getName(), "B");
-		assertEquals(disk.getFramentByName("B"), B);
+		assertEquals(disk.getFragmentByName("B"), B);
 	}
 	
 	

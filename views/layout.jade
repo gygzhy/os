@@ -2,6 +2,9 @@ doctype html
 html
   head
     title= title
+    
+    script(type="text/javascript" src="/webcomponentsjs/webcomponents.min.js")
+      
     link(rel='stylesheet', href='/stylesheets/style.css')
     link(rel="import" href="/polymer/polymer-mini.html")
     link(rel="import" href="/paper-drawer-panel/paper-drawer-panel.html")
@@ -24,50 +27,16 @@ html
     link(rel="import" href="/paper-input/paper-input.html")
     link(rel="import" href="/paper-dialog/paper-dialog.html")
     link(rel="import" href="/paper-checkbox/paper-checkbox.html")
+    link(rel="import" href="/paper-dialog-scrollable/paper-dialog-scrollable.html")
     link(rel="import" href="/paper-slider/paper-slider.html")
     
     script(type="text/javascript" src="/chartjs/Chart.min.js")
     script(type="text/javascript" src="/socket.io/socket.io.js")
     script(type="text/javascript" src="/jquery/dist/jquery.min.js")
-    script.
-      var socket = io.connect('http://localhost:3000');
-      socket.emit('user login', 'admin');
-    style.
-      body {
-        margin: 0;
-        padding: 0;
-        background: #f6f6f6;
-      }
-      paper-header-panel {
-        background: #f6f6f6;
-      }
       
-      form {
-        overflow: hidden;
-      }
-      .main {
-        width: 900px;
-        margin: 10px auto;
-        padding: 10px 16px;
-        background: #fff;
-      }
-      .input-box {
-        width: 23%;
-        padding: 0 1%;
-        float: left;
-      }
-      table {
-        width: 100%;
-        border: 1px solid #ccc;
-      }
-      table tr {
-        border-top: 1px solid #ccc;
-        border-bottom: 1px solid #ccc;
-      }
-      table tr, table th {
-        padding: 8px 15px;
-      }
-    
+    script(type="text/javascript" src="/javascripts/helper.js")
+    script(type="text/javascript" src="/javascripts/heart-beat.js")
+      
   body
     paper-drawer-panel
       paper-header-panel(drawer)
@@ -86,193 +55,5 @@ html
         div#main
           block content
     include ./desktop.jade
-    script(type="text/javascript").
-      
-      $('form').on('click', 'paper-button,  paper-icon-button', function() {
-        if ($(this).attr('role') === 'ordinary') {
-          return;
-        }
-        
-        var form = $(this).parents('form');
-        var action = form.attr('action');
-        var data = {};
-        $(form).find('paper-input,paper-textarea,input,paper-radio-group').each(function(index, val) {
-          if ($(val).attr('label') != null || $(val).attr('name')) {
-            data[$(val).attr('label')] = $(val).val();
-          }
-        });
-        
-        console.log(data);
-        
-        socket.emit(action, data);
-      });
-      
-      function uuidToHex(uuid) {
-        var g = parseInt(uuid.substr(2, 2), 16);
-        var r = parseInt(uuid.substr(0, 2), 16);
-        r = Math.max(~~(r / 2), 16);
-        g = Math.max(~~(g / 2), 16);
-        return '#' + r.toString(16) + g.toString(16) + uuid.substr(4, 2);
-      }
-      function formatTime(n) {
-        var h, m, s = n;
-        if (s < 60) {
-          return s;
-        } else if (s < 3600) {
-          m = ~~(s / 60);
-          s = n - m * 60;
-          return m + ':' + s;
-        } else {
-          h = ~~(s / 3600);
-          m = ~~((s - h * 3600)/ 60);
-          s = s - h * 3600 - m * 60;
-          return h + ':' + m + ':' + s;
-        }
-      }
-      
-      // initial data for line graph
-      var data = {
-        labels: ["1"],
-        datasets: [
-          {
-            label: 'Full memory',
-            fillColor: "rgba(220,190,170,0.2)",
-            strokeColor: "rgba(220,190,170,1)",
-            pointColor: "rgba(220,220,220,1)",
-            pointStrokeColor: "#fff",
-            pointHighlightFill: "#fff",
-            pointHighlightStroke: "rgba(220,220,220,1)"
-          },
-          {
-            label: 'Idle Memory',
-            fillColor: "rgba(200,220,190,0.2)",
-            strokeColor: "rgba(200,220,190,1)",
-            pointColor: "rgba(220,220,220,1)",
-            pointStrokeColor: "#fff",
-            pointHighlightFill: "#fff",
-            pointHighlightStroke: "rgba(220,220,220,1)"
-          }
-        ]
-      };
-      
-      var ctx = document.getElementById('memoryHistory').getContext('2d');
-      var memoryHistory = new Chart(ctx).Line(data, {bezierCurve: false});
-      
-      ctx = document.getElementById('memoryPercent').getContext('2d');
-      var memoryPercent = new Chart(ctx).Pie();
-      
-      var pcbTable = $('#pcbTable');
-      
-      function createArray(size) {
-        var array = [];
-        for(var i =0; i <size; i++) {
-          array.push(Math.random() * 200);
-        }
-        return array;
-      }
-      
-      var raf = (function() {
-        var raf = function(cb) {
-          setTimeout(cb, 26);
-        }
-        if (window.requestAnimationFrame) {
-            raf = window.requestAnimationFrame;
-        } else if (window.webkitRequestAnimationFrame) {
-          raf = window.webkitRequestAnimationFrame;
-        } else if (window.mozRequestAnimationFrame) {
-          raf = window.mozRequestAnimationFrame;
-        }
-        
-        return raf;
-      })();
-      
-      socket.on('heart beat', function(data) {
-        //- console.log('heart beat');
-        
-        var memory = data.memory;
-        // update line chart
-        if (memoryHistory.datasets[0].points.length > 15) {
-          memoryHistory.removeData();
-        }
-        memoryHistory.addData([memory.busySize, memory.idleSize],
-          formatTime(data.seconds));
-        memoryHistory.update();
-        
-        var delta = memoryPercent.segments.length - memory.sections.length;
-        if (delta > 0) {
-          for(var i = 0; i < delta; i++) {
-            memoryPercent.removeData();
-          }
-        } else if(delta < 0) {
-          for(var i = 0; i < -delta; i++) {
-            memoryPercent.addData({
-              value: 0,
-              color: '#eee',
-              highlight: '#f8f8f8',
-              label: 'idle'
-            });
-          }
-        }
-        
-        for(i = 0; i < memory.sections.length; i++) {
-          memoryPercent.segments[i].value = memory.sections[i].size;
-          memoryPercent.segments[i].fillColor = memory.sections[i].isIdle ? "#eee" : uuidToHex(memory.sections[i].id);
-          memoryPercent.segments[i].label = memory.sections[i].id;
-        }
-        
-        memoryPercent.update();
-        
-        // update pcb table
-        pcbTable.html("");
-        data.pcbs.total.forEach(function(val) {
-          pcbTable.append(createTr(val));
-        });
-      });
-      
-      // update cpu time
-      document.querySelector('#cpuTime').addEventListener('value-change', function() {
-        socket.emit('change cpu interval', this.value);
-      });
-      
-      document.querySelector('#update').addEventListener('click', function() {
-        var data = {};
-        [].forEach.call(document.querySelectorAll('#inputs paper-input'), function(val) {
-          data[val.label] = val.value;
-        });
-        data.user = 'admin';
-        socket.emit('add a process', data);
-      });
-      
-      [].forEach.call(document.querySelectorAll('.change-mode paper-radio-button'), function(val) {
-        val.addEventListener('click', function() {
-          var type = $(this).parents('.change-mode').attr('data-mode');
-          socket.emit('change mode ' + type, $(this).attr('name'));
-        });
-      });
-      
-      $('#enter-desktop').on('click', function() {
-        $('paper-drawer-panel').hide();
-        $('#desktop').show();
-        
-        $('#login').show();
-      });
-      
-      $('#pcbTable').on( 'click', '.operation',function() {
-        var label = $(this).attr('label');
-        socket.emit('pcb operation ' + label, $(this).parents('tr').attr('pid'));
-      });
-      
-      function createTr(pcb) {
-        var tr = $('<tr></tr>');
-        tr.attr('pid', pcb.id);
-        tr.append($('<td>' + pcb.name + '</td>'));
-        tr.append($('<td>' + pcb.cpuTime + '</td>'));
-        tr.append($('<td>' + pcb.memorySize + '</td>'));
-        tr.append($('<td>' + pcb.level + '</td>'));
-        tr.append($('<td>' + pcb.user + '</td>'));
-        tr.append($('<td>' + pcb.status + '</td>'));
-        tr.append($('<td><paper-button class="operation" label="stop">stop</paper-button><paper-button class="operation" label="wait">wait</paper-button><paper-button class="operation" label="restart">restart</paper-button></td>'));
-        return tr;
-      }
-    
+    script(type="text/javascript" src="/javascripts/index.js")
           

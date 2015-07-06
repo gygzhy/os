@@ -40,7 +40,7 @@ public class Disk {
 
 
 
-	public DiskFragment getFramentByName(String name) {
+	public DiskFragment getFragmentByName(String name) {
 		for (DiskFragment diskFragment : fragments) {
 			if (diskFragment.name.equals(name)) {
 				return diskFragment;
@@ -81,10 +81,17 @@ public class Disk {
 				
 				fragments.add(j, ret);
 				
+				ret.root = new FCB(ret, true);
+				ret.root.setName("root");
+				
 				return ret;
 			} else if (diskFragment.isIdle && diskFragment.storage.size() == size) {
 				diskFragment.isIdle = false;
 				diskFragment.name = name;
+				
+				diskFragment.root = new FCB(diskFragment, true);
+				diskFragment.root.setName("root");
+				
 				return diskFragment;
 			}
 			 ++j;
@@ -96,6 +103,8 @@ public class Disk {
 	public class DiskFragment {
 		
 		protected Disk disk;
+		
+		protected FCB root;
 		
 		private boolean isIdle;
 		
@@ -131,8 +140,37 @@ public class Disk {
 			id = UUID.randomUUID();
 			storage = new ArrayList<>();
 			this.disk = disk;
-			
+
 			isIdle = true;
+		}
+		
+		public void delete() {
+			
+			root.delete();
+			root = null;
+			isIdle = true;
+			name = "new fragment";
+			
+			int index = disk.fragments.indexOf(this);
+			if (index != 0 && index != disk.fragments.size() - 1 && 
+					disk.fragments.get(index - 1).isIdle && 
+					disk.fragments.get(index + 1).isIdle) {
+				disk.fragments.get(index - 1).storage.addAll(storage);
+				disk.fragments.get(index -1 ).storage.addAll(disk.fragments.get(index + 1).storage);
+				disk.fragments.remove(index + 1);
+				disk.fragments.remove(index);
+				
+			}else if (index != 0 && disk.fragments.get(index - 1).isIdle) {
+				disk.fragments.get(index - 1).storage.addAll(storage);
+				disk.fragments.remove(index);
+			} else if (index != disk.fragments.size() - 1 && disk.fragments.get(index + 1).isIdle) {
+				storage.addAll(disk.fragments.get(index + 1).storage);
+				disk.fragments.remove(index + 1);
+			}
+		}
+		
+		public FCB getRoot() {
+			return root;
 		}
 
 		public String getName() {

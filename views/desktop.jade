@@ -17,6 +17,8 @@ style.
     display: none;
     position: absolute;
     padding: 10px 0;
+    background: #fff;
+    z-index: 700;
   }
   #right-menu paper-button, #file-menu paper-button {
     display: block;
@@ -29,20 +31,12 @@ style.
     width: 60px;
     margin: 10px;
     float: left;
-  }
-  .desktop-file .icon{
-    height: 70px;
-    margin-bottom: 5px;
-    background: #fff;
-  }
-  .desktop-folder .icon {
-    height: 70px;
-    margin-bottom: 5px;
-    background: blue;
-  }
-
-  .desktop-file p, .desktop-folder p {
     text-align: center;
+  }
+  
+  .desktop-file iron-icon, .desktop-folder iron-icon {
+    --iron-icon-height: 24px;
+    --iron-icon-width: 24px;
   }
   
   #user-toolbar {
@@ -52,22 +46,21 @@ style.
   #editor-container {
     position: absolute;
     width: 700px;
-    height: 400px;
-    display: none;
+    overflow: hidden;
     left: 50%;
     top: 50%;
     margin-left: -350px;
     margin-top: -200px;
-    background: #fafafa;
     z-index: 200;
   }
-  #editor-container paper-editor {
-    margin: 10px 20px;
+  #editor-container paper-dialog-scrollable {
+    height: 300px;
+    overflow: auto;
   }
 div#desktop
   paper-toolbar#user-toolbar
     form(action="go back")
-      paper-icon-button(icon="back")
+      paper-icon-button(icon="arrow-back")
     span#path
   paper-material#login
     form(action="user login")
@@ -75,28 +68,32 @@ div#desktop
       paper-button(raised style="background: #66ff44") Login
       paper-button#exit-btn(role="ordinary") exit
   paper-material#menu-bar
-  paper-material#right-menu
-      form(action="new file")
-        paper-button new file
-      form(action="new folder")  
-        paper-button new folder
-      form(action="new process")  
-        paper-button new process
-        paper-button#exit-desktop exit
-  paper-material#file-menu
-    form(action="delete file")
-      input(type='hidden')
+  paper-material#right-menu.context-menu
+    form(action="new file")
+      paper-button new file
+    form(action="new folder")  
+      paper-button new folder
+    form(action="new process")  
+      paper-button new process
+      paper-button#exit-desktop exit
+  paper-material#file-menu.context-menu
+    form(action="delete fcb")
+      input(label="id" type='hidden')
       paper-button delete
-  paper-material#editor-container
-    paper-toolbar
-      paper-button#editor-close close
-    form(action="edit file")
+  paper-dialog(data-role="form" action="edit file" entry-animation="scale-up-animation"
+              exit-animation="fade-out-animation")#editor-container
+    paper-input(label="name")
+    paper-dialog-scrollable
       input(label="id" type="hidden")#editor-id
       paper-textarea(label="content")#editor
+    div.button
+      paper-button(role="ordinary")#editor-close close
       paper-button edit
+  paper-material#desktop-main    
     
 script.
   $('#desktop').height($(window).height());
+  $('#desktop-main').height($(window).height() - $('#user-toolbar').height());
   // TODO: desktop
   var user = 'admin';
   
@@ -106,27 +103,16 @@ script.
         return;
     } else {
       $('#login').hide();
-      $('#user-toolbar').fadeTo(1, 200).find('#path').html(user);
+      $('#desktop-main').fadeTo(200, 1);
+      $('#user-toolbar').fadeTo(200, 1).find('#path').html(user);
     }
-  });
-  
-  $('#desktop').on('contextmenu', function(e) {
-    if (user === 'admin') {
-        return;
-    }
-    e.preventDefault();
-    
-    $('#right-menu').css({
-      top: e.clientY,
-      left: e.clientX
-    }).show();
   });
   
   function createFile(name, id) {
     var file = $('<div></div>');
     file.addClass('desktop-file');
     file.attr('name', name).attr('fid', id);
-    file.html('<div class="icon"></div><p>' + name + '</p>');
+    file.html('<iron-icon icon="description"></iron-icon><p>' + name + '</p>');
     return file;
   }
   
@@ -134,24 +120,25 @@ script.
     var file = $('<div></div>');
     file.addClass('desktop-folder');
     file.attr('name', name).attr('fid', id);
-    file.html('<div class="icon"></div><p>' + name + '</p>');
+    file.html('<iron-icon icon="folder"></iron-icon><p>' + name + '</p>');
     return file;
   }
   
   socket.on('new file', function(data) {
     var file =createFile(data.name, data.id);
-    $('#desktop').append(file);
+    $('#desktop-main').append(file);
   });
   
   socket.on('new folder', function(data) {
     var file = createFolder(data.name, data.id);
-    $('#desktop').append(file);
+    $('#desktop-main').append(file);
   })
   
   socket.on('read file', function(data) {
     $('#editor-container').show();
     $('#editor').val(data.content);
     $('#editor-id').val(data.id);
+    $('#editor-container paper-input[label="name"]').val(data.name);
   });
   
   socket.on('open folder', function(data) {
@@ -165,7 +152,7 @@ script.
         fcb = createFile(f.name, f.id);
       }
       
-      $('#desktop').append(fcb);
+      $('#desktop-main').append(fcb);
     }
     
     $('#path').html(data.path);
@@ -179,19 +166,38 @@ script.
     $('#right-menu, #file-menu').hide();
   });
   
-  $('#desktop').on('click', '.desktop-file', function() {
+  $('#desktop-main').on('click', '.desktop-file', function() {
     socket.emit('read file', {
       id: $(this).attr('fid')
     });
   });
   
-  $('#desktop').on('contextmenu', '.desktop-file, .desktop-folder', function(e) {
+  $('#desktop-main').on('contextmenu', function(e) {
+    if (user === 'admin') {
+        return;
+    }
+    e.preventDefault();
+    
+    $('.context-menu').hide();
+    
+    $('#right-menu').css({
+      top: e.clientY,
+      left: e.clientX
+    }).show();
+  });
+  
+  $('#desktop-main').on('contextmenu', '.desktop-file, .desktop-folder', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    $('.context-menu').hide();
+  
     $('#file-menu').css({
       top: e.clientY,
       left: e.clientX
     }).show();
     
-    $('#file-menu input').val($(this).attr('fid'));
+    $('#file-menu input[type="hidden"]').val($(this).attr('fid'));
   });
   
   $('#desktop').on('click', '.desktop-folder', function() {
@@ -206,6 +212,7 @@ script.
   function logout() {
     $('paper-drawer-panel').show().css('height', '100%');
     $('#desktop').hide();
+    $('#desktop-main').hide();
     $('#login').show();
     $('#user-toolbar').hide();
     

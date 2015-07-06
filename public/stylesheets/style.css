@@ -1,8 +1,102 @@
 body {
   padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  font: 12px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
 
 a {
   color: #00B7FF;
+}
+
+.clear-fix {
+  display: block;
+  width: 1px;
+  height: 0px;
+  clear: both;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #f6f6f6;
+}
+paper-header-panel {
+  background: #f6f6f6;
+}
+
+.main {
+  width: 900px;
+  margin: 10px auto;
+  padding: 10px 16px;
+  background: #fff;
+}
+.input-box {
+  width: 23%;
+  padding: 0 1%;
+  display: inline-block;
+}
+table {
+  border-spacing: 0;
+  width: 100%;
+}
+table tr:nth-child(even) {
+  background: #f8f8f8;
+}
+table td, table th {
+  padding: 1px 15px;
+}
+
+
+.disk-section {
+  width: 8px;
+  height: 8px;
+  margin: 1px;
+  background: #ccc;
+  float: left;
+}
+#disk-section-container {
+  overflow: hidden;
+}
+#disk-fragment-container {
+  overflow: hidden;
+}
+
+#disk-fragment-container > div {
+  color: #fff;
+  float: left;
+  text-align: center;
+  height: 40px;
+  line-height: 40px;
+}
+
+
+#play-ground {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  margin: 0 auto;
+  position: relative;
+}
+
+.ground {
+  width: 49%;
+  height: 100px;
+  border: 1px solid #eee;
+  float: left;
+}
+
+.play-circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 60px;
+  background: red;
+  float: left;
+  text-align: center;
+  line-height: 60px;
+  opacity: .6;
+
+  transition: all 300ms 0ms ease-in;
+}
+
+#user-list span {
+  margin: 0 20px;
 }

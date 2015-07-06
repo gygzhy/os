@@ -27,8 +27,11 @@ public class FCB {
 	public String getName() {
 		return name;
 	}
-	
-	
+
+	public Disk.DiskFragment getFragment() {
+		return fragment;
+	}
+
 
 	public boolean isFolder() {
 		return isFolder;
@@ -112,6 +115,8 @@ public class FCB {
 			parent.subFcbs.remove(this);
 			parent = null;
 		}
+		
+		fragment = null;
 	}
 	
 	public void addSubFcb(FCB fcb) {
@@ -274,6 +279,9 @@ public class FCB {
 	
 	private String arrayListToString(ArrayList<Character> data) {
 		String ret = "";
+		if (data == null) {
+			return ret;
+		}
 		for(int i = 0 ; i < data.size(); i++) {
 			ret += data.get(i);
 		}

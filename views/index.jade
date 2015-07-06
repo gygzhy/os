@@ -29,7 +29,7 @@ block content
         paper-radio-button(name='5') ZDZY
         paper-radio-button(name='6') ZGXYB
     h3 Adding process
-      div#inputs
+      form(action="add a process")
         div.input-box
           paper-input(label="name")
         div.input-box
@@ -38,274 +38,50 @@ block content
           paper-input(label="time")
         div.input-box
           paper-input(label="level")
-        div.input-box(style="float: right")
-          paper-button(raised style="background:#99ee44")#update Add
+        div
+          paper-button(raised style="background:#99ee44") Add
     div#play-ground
       div#ready-ground.ground
       div#init-ground.ground
       div#wait-ground.ground
       div#finish-ground.ground
-      style.
-        #play-ground {
-          width: 100%;
-          height: 200px;
-          overflow: hidden;
-          margin: 0 auto;
-          position: relative;
-        }
         
-        .ground {
-          width: 49%;
-          height: 100px;
-          border: 1px solid #eee;
-          float: left;
-        }
-        
-        .play-circle {
-          width: 60px;
-          height: 60px;
-          border-radius: 60px;
-          background: red;
-          float: left;
-          text-align: center;
-          line-height: 60px;
-          opacity: .6;
-          
-          transition: all 300ms 0ms ease-in;
-        }
-      script.
-        
-        socket.on('add a process', function(data) {
-          var circle = createCircle(data);
-          moveTo(circle, 0);
-        });
-        
-        socket.on('heart beat', function(data) {
-          var pcbs = data.pcbs.total;
-          [].forEach.call(pcbs, function(val) {
-            var circle = findCircle(val.id);
-            if (!circle) {
-              moveTo(createCircle(val), val.status);
-            } else {
-            
-              if (circle.status === val.status) {
-                return;
-              }
-              moveTo(circle, val.status);
-            }
-          });
-        });
-        
-        var ready = [], init = [], finish = [], wait = [];
-        var readyQueue = $('#ready-ground');
-        var initQueue = $('#init-ground');
-        var waitQueue = $('#wait-ground');
-        var finishQueue = $('#finish-ground');
-        var executing = null;
-        var playground = $('#play-ground');
-        var playgroundXHalf = playground.width() / 2;
-        var playgroundYHalf = playground.height() / 2;
-        
-        var largestSize = 0;
-        
-        function moveTo(circle, queue) {
-          var from = circle.queue;
-          if (from && circle.status !== 2) {
-            from.splice(from.indexOf(circle), 1);
-            circle.element.remove();
-          }
-          switch(queue) {
-            case 1:
-              ready.push(circle);
-              circle.from = ready;
-              circle.fromQueue = readyQueue;
-              readyQueue.append(circle.element);
-              circle.element.css('background', 'red');
-              circle.status = 1;
-              break;
-            case 0:
-              init.push(circle);
-              circle.from = init;
-              circle.fromQueue = initQueue;
-              initQueue.append(circle.element);
-              circle.element.css('background', 'red');
-              circle.status = 0;
-              break;
-            case 4:
-              finish.push(circle);
-              resize(circle, 30);
-              circle.element.css('background', '#aaa');
-              circle.from = finish;
-              circle.fromQueue = finishQueue;
-              finishQueue.append(circle.element);
-              circle.status = 4;
-              break;
-            case 3:
-              wait.push(circle);
-              circle.from = wait;
-              circle.fromQueue = waitQueue;
-              waitQueue.append(circle.element);
-              circle.element.css('background', 'red');
-              circle.status = 3;
-              break;
-            case 2:
-              ready.push(circle);
-              circle.from = ready;
-              circle.fromQueue = readyQueue;
-              readyQueue.append(circle.element);
-              circle.element.css('background', '#99fe78');
-              circle.status = 2;
-              break;
-          }
-        }
-        
-        function translate(circle, to) {
-          circle.element.css({
-            transform: 'translate(' + to.x + 'px,' + to.y + 'px' + ')'
-          });
-        }
-        
-        function resize(circle, size) {
-          largestSize = Math.max(largestSize, size);
-          
-          circle.element.css({
-            width: size,
-            height: size,
-            borderRadius: size,
-            lineHeight: size + 'px',
-            transform: 'translate(' + circle.x + (size - circle.size)/2 + 'px, ' +
-              circle.y + (size - circle.size)/2 + 'px' + ')'
-          });
-          
-        }
-        
-        function findCircle(id) {
-          if(executing && executing.id === id) {
-            return executing;
-          }
-          
-          for(var i = 0 ; i< ready.length; i++) {
-            if (ready[i].id == id)
-              return ready[i];
-          }
-          
-          for(var i = 0 ; i< init.length; i++) {
-            if (init[i].id == id)
-              return init[i];
-          }
-          
-          for(var i = 0 ; i< finish.length; i++) {
-            if (finish[i].id == id)
-              return finish[i];
-          }
-          
-          for(var i = 0 ; i< wait.length; i++) {
-            if (wait[i].id == id)
-              return wait[i];
-          }
-          return null;
-        }
-        
-        function createCircle(data) {
-          var circle = {};
-          circle.data = data;
-          circle.name = data.name;
-          circle.id = data.id;
-          circle.level = data.level;
-          circle.runtime = data.runtime;
-          circle.x = 0; circle.y = 0;
-          circle.status = data.status;
-          circle.element = $('<div class="play-circle">'+ circle.name +'</div>');
-          
-          if (circle.status == 2) {
-              circle.element.css('background', '#99fe78');
-          }
-          resize(circle, circle.runtime);
-          return circle;
-        }
     h3 Cpu Status
-    table
-      thead
-        tr
-          th name
-          th cpu time
-          th memory size
-          th level
-          th user
-          th status
-      tbody#pcbTable
-  
-  
-  //- harddisk
-  style.
+    paper-material
+      table
+        thead
+          tr
+            th name
+            th cpu time
+            th memory size
+            th level
+            th user
+            th status
+            th operation
+        tbody#pcbTable  
 
-    .disk-section {
-      width: 8px;
-      height: 8px;
-      margin: 1px;
-      background: #ccc;
-      float: left;
-    }
-    #disk-section-container {
-      overflow: hidden;
-    }
-    #disk-fragment-container {
-      overflow: hidden;
-    }
-    
-    #disk-fragment-container > div {
-      color: #fff;
-      float: left;
-      text-align: center;
-      height: 40px;
-      line-height: 40px;
-    }
-    
-    
+  //- harddisk
   paper-material(elevation=2).main
     h1 hard disk
-    h3 Hard Disk Block
+    h3 Add Fragment
     form(action="new fragment")
       div.input-box
         paper-input(label="name")
       div.input-box
         paper-input(label="size")
       paper-button(raised) add
+      div.clear-fix
+    h3 Delete Fragment
+    form(action="delete fragment")
+      div.input-box
+        paper-input(label="name")
+      paper-button(raised) delete
+      div.clear-fix
+    h3 Hard Disk Sections    
     div#disk-section-container
     h3 Hard disk segments
     div#disk-fragment-container
       
-  script.
-    socket.on('heart beat', function(data) {
-      var disk = data.disk;
-      $('#disk-section-container').html('');
-      for (var i =0 ;i < disk.diskSections.length; i ++) {
-        var sec = $('<div></div>');
-        sec.addClass('disk-section');
-        if (!disk.diskSections[i].isIdle) {
-          sec.css('background', uuidToHex(disk.diskSections[i].fcb));
-        }
-        $('#disk-section-container').append(sec);
-      }
-      
-      
-      $('#disk-fragment-container').html('');
-      for(var i = 0; i < disk.fragments.length; i ++) {
-        var frag = $('<div class="disk-fragment">' + disk.fragments[i].name + '</div>');
-        frag.css({
-          width: disk.fragments[i].size / disk.sectionNum * 100+ '%',
-          background: uuidToHex(disk.fragments[i].id)
-        });
-        if (disk.fragments[i].isIdle) {
-          frag.css({
-            'background': '#eee',
-            'color': '#000'
-          });
-        }
-        $('#disk-fragment-container').append(frag);
-      }
-    });
-    
   //- user
   style.
     #user-list > paper-checkbox {
@@ -315,70 +91,19 @@ block content
     h1 User
     h3 Add user
     form(action="add user")
-      paper-input(label="username")
-      paper-button(raised) Add
+      div.input-box
+        paper-input(label="username")
+      div.input-box
+        paper-input(label="fragment")    
+      div
+        paper-button(raised) Add
     h3 User list
+    div#user-list
+    h3 Delete user
     form(action="delete user")
-      paper-radio-group#user-list
-      paper-button(raised) Delete
-    script.
+      div.input-box
+        paper-input(label="username")
+      div
+        paper-button(raised) Delete
+
       
-      function update(A, B, equal, updatecb, morecb, lesscb) {
-        for(var a in A) {
-          var found = false;
-          for(var b in B) {
-            if (equal(a, b)) {
-              found = true;
-            }
-          }
-          if (!found) {
-            lesscb(A, B, a);
-            delete A[a];
-          }
-        };
-        
-        for(var b in B) {
-          var found = false;
-          for(var a in A) {
-            if (equal(a, b)) {
-              found = true;
-            }
-          }
-          if (!found) {
-            A[b] = B[b];
-            morecb(A, B, b);
-          }
-        };
-      }
-      
-      var users = {};
-      socket.on('heart beat', function(data) {
-        for(var user in users) {
-          var found = false;
-          for(var newuser in data.users) {
-            if (user === newuser) {
-              found = true;
-            }
-          }
-          if (!found) {
-            $('#user-list paper-radio-button').filter(function(val) {
-              return $(val).html() === user;
-            });
-            delete users[user];
-          }
-        };
-        
-        for(var newuser in data.users) {
-          var found = false;
-          for(var user in users) {
-            if (user === newuser) {
-              found = true;
-            }
-          }
-          if (!found) {
-            users[newuser] = data[newuser];
-            $('#user-list').append($('<paper-radio-button name="' +newuser+ '">' + 
-              newuser + '</paper-radio-button>'))
-          }
-        };
-      });

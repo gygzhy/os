@@ -48,7 +48,7 @@ public class Test_FCB {
 		fcb.replace(test);
 		assertThat(test.length(), equalTo(fcb.getSize()));
 		assertEquals(test, fcb.readString());
-		assertThat(frag.getIdleSectionNum(), equalTo(frag.getStorage().size() - (int) Math.ceil(test.length() / disk.sectionSize)));
+		assertThat(frag.getIdleSectionNum() + 1, equalTo(frag.getStorage().size() - (int) Math.ceil(test.length() / disk.sectionSize)));
 	}
 	
 	@Test
@@ -56,7 +56,7 @@ public class Test_FCB {
 		FCB fcb = new FCB(frag);
 		String test = "slkjf ealkfj alsdkfase lkj jkaef lkja selfa selkfja ef asd fasslkjf ealkfj alsdkfase lkj jkaef lkja selfa selkfja ef asd fasdslkjf ealkfj alsdkfase lkj jkaef lkja selfa selkfja ef asd fasdd";
 		fcb.replace(test);
-		assertEquals(frag.getStorage().size() - 6, frag.getIdleSectionNum());
+		assertEquals(frag.getStorage().size() - 7, frag.getIdleSectionNum());
 		assertEquals(test.length(), fcb.getSize());
 		assertEquals(test, fcb.readString());
 	}
@@ -75,7 +75,7 @@ public class Test_FCB {
 		FCB fcb = new FCB(frag);
 		fcb.append("fuck");
 		fcb.delete();
-		assertEquals(frag.getStorage().size(), frag.getIdleSectionNum());
+		assertEquals(frag.getStorage().size() - 1, frag.getIdleSectionNum());
 	}
 	
 	@Test
@@ -114,7 +114,7 @@ public class Test_FCB {
 		
 		folder.delete();
 		
-		assertEquals(frag.getIdleSectionNum(), frag.getStorage().size());
+		assertEquals(frag.getIdleSectionNum(), frag.getStorage().size() - 1);
 	}
 	
 	@Test
@@ -157,6 +157,5 @@ public class Test_FCB {
 		file.append("fuck you");
 		
 		assertEquals(file.readString(), "fuck you");
-		assertEquals(file.getPath(), "");
 	}
 }

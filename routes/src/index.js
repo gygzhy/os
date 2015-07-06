@@ -18,7 +18,6 @@ const Disk = java.import('com.csu.os.resource.Disk');
 const FCB = java.import('com.csu.os.resource.FCB');
 
 var disk = new Disk(2048, 32);
-var root = null;
 
 cpu.start();
 // counting the time
@@ -28,7 +27,7 @@ var seconds = 0;
 router.get('/', function(req, res, next) {
 
   initIo(req.app.io);
-  res.render('index', { title: 'Memory fuck hey' });
+  res.render('index', { title: 'OS Design' });
 });
 
 // 用户列表
@@ -44,17 +43,20 @@ function initIo(io) {
 
   io.on('connection', function(socket) {
 
+    // current user;
+    var user = null;
+
     log('a client connet through socket');
+
+    socket.on('error', function(error) {
+      console.trace(error);
+    });
 
     socket.on('allocate memory', function(data) {
       if (isFinit(data)) {
         var mem = Memory.Allocate(data);
         socket.emit('allocate memory', mem.getIdSync());
       }
-    });
-
-    socket.on('change allocate mode', function(data) {
-
     });
 
     socket.on('change cpu interval', function(data) {
@@ -97,21 +99,24 @@ function initIo(io) {
     // user login logout
     // ------------------------------------------------------------------------
 
-    // current user;
-    var user = null;
-
     socket.on('add user', function(data) {
       console.log('add user');
       users[data.username] = {
         isLogin: false
       };
 
-      users[data.username].folder = root.createSubFolderSync();
-      users[data.username].folder.setNameSync(data.username);
+      var fragment = disk.getFragmentByNameSync(data.fragment);
+      if (!fragment) {
+        return;
+      }
+      var root = fragment.getRootSync();
+
+      var folder = root.createSubFolderSync();
+      folder.setNameSync(data.username);
     });
 
     socket.on('delete user', function(data) {
-      var toDelete = users.splice(users.indexOf(data.username), 1);
+      var toDelete = users[data.username];
       toDelete.folder.deleteSync();
     });
 
@@ -120,12 +125,14 @@ function initIo(io) {
         user = users[data.username];
         user.isLogin = true;
         user.currentFolder = user.folder;
+
         socket.emit('user login', {
           username: data.username
         });
-      } else {
-        socket.emit('user login', {
-          username: 'admin'
+
+        socket.emit('open folder', {
+          path: user.currentFolder.getPathSync(),
+          subFcbs: openFolder(user.currentFolder)
         });
       }
     });
@@ -142,28 +149,33 @@ function initIo(io) {
     // ------------------------------------------------------------------------
     socket.on('new fragment', function(data) {
       var fragment = disk.addFragmentSync(parseInt(data.size), data.name);
-      root = new FCB(fragment, true);
-      root.setNameSync('root');
-      console.log(root.getNameSync());
+    });
+
+    socket.on('delete fragment', function(data) {
+      var fragment = disk.getFragmentByNameSync(data.name);
+      if (fragment !== null) {
+        fragment.delete();
+      }
     });
 
 
     // ------------------------------------------------------------------------
     // file and folder
     // ------------------------------------------------------------------------
+
     socket.on('new file', function(data) {
       var fcb = user.currentFolder.createSubFileSync();
 
-      socket.emit('new file', {
-        id: fcb.getIdStringSync(),
-        name: fcb.getNameSync(),
-        size: fcb.getSizeSync()
+      socket.emit('open folder', {
+        path: user.currentFolder.getPathSync(),
+        subFcbs: openFolder(user.currentFolder)
       });
     });
 
     socket.on('edit file', function(data) {
       var fcb = user.currentFolder.getFcbByIdSync(data.id);
       fcb.replaceSync(data.content);
+      fcb.setNameSync(data.name);
     });
 
     socket.on('read file', function(data) {
@@ -181,7 +193,8 @@ function initIo(io) {
     socket.on('go back', function() {
       var fcb = user.currentFolder.getParentSync();
 
-      if (fcb.getIdStringSync() === root.getIdStringSync()) {
+      if (fcb.getIdStringSync() === user.currentFolder.getFragmentSync().
+        getRootSync().getIdStringSync()) {
         return;
       }
       user.currentFolder = fcb;
@@ -194,8 +207,6 @@ function initIo(io) {
 
     socket.on('open folder', function(data) {
       var fcb = user.currentFolder.getFcbByIdSync(data.id);
-
-      console.log(fcb.getNameSync());
 
       user.currentFolder = fcb;
 
@@ -231,14 +242,16 @@ function initIo(io) {
 
     });
 
-    socket.on('rename fcb', function(data) {
-      var fcb = user.currentFolder.getFcbByIdSync(data.id);
-      fcb.setNameSync(data.name);
-    });
-
     socket.on('delete fcb', function(data) {
       var fcb = user.currentFolder.getFcbByIdSync(data.id);
       fcb.deleteSync();
+
+      log("delete fcb");
+
+      socket.emit('open folder', {
+        path: user.currentFolder.getPathSync(),
+        subFcbs: openFolder(user.currentFolder)
+      });
     });
 
     // ------------------------------------------------------------------------
@@ -270,7 +283,7 @@ function initIo(io) {
 
     getHardDiskInfo(data);
 
-    data.users = users;
+    getUserInfo(data);
     // increase counting
     seconds += interval / 1000;
 
@@ -282,6 +295,22 @@ function initIo(io) {
   timer();
 
   ioInitialized = true;
+}
+
+function getUserInfo(data) {
+  data.users = users = {};
+  var availFrags = disk.getAvailFragmentsSync();
+  for(let i = 0; i < availFrags.sizeSync(); i ++) {
+    let frag = availFrags.getSync(i);
+    let root = frag.getRootSync();
+    for(let j = 0; j < root.getSubFcbsSync().sizeSync(); j++) {
+      let fcb = root.getSubFcbsSync().getSync(j);
+      data.users[fcb.getNameSync()] = {
+        id: fcb.getIdSync,
+        folder: fcb
+      };
+    }
+  }
 }
 
 function getPcbInfo(data) {
@@ -335,7 +364,7 @@ function getMemoryInfo(data) {
       id: cur.getIdSync(),
       size: cur.getSizeSync(),
       isIdle: cur.isIdleSync(),
-      pcbName: pcb ? pcb.getNameSync() : null
+      pcbName: pcb === null ? "idle" : pcb.getNameSync()
     });
     cur = cur.getNextSync();
   }

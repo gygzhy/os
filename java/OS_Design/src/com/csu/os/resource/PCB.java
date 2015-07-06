@@ -108,7 +108,7 @@ public class PCB implements Serializable {
 	
 	public PCB(String user, String name, int runTime, int level, int memory) throws Exception {
 		super();
-		this.memory = Memory.Allocate(memory);
+		this.memory = Memory.Allocate(memory, this);
 		this.user = user;
 		this.name = name;
 		this.runTime = runTime;

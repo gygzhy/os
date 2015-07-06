@@ -1,4 +1,4 @@
 {
   "esnext": true,
-  "global": ["process"]
+  "gloabls": ["process"]
 }
